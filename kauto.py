@@ -207,6 +207,13 @@ class APIServer():
                 sleep(0.2)
         return request
 
+    def empty(self):
+        try:
+            APIServer.REQUESTS_LOCK.acquire()
+            del APIServer.REQUESTS[:]
+        finally:
+            APIServer.REQUESTS_LOCK.release()
+
 
 ################################################################
 #
@@ -478,7 +485,7 @@ def combat_map_moving():
 #
 ################################################################
 
-def auto_1_1():
+def auto_1_1_single():
     set_foremost()
 
     dock_back_to_port()
@@ -504,11 +511,11 @@ def auto_1_1():
     supply_first_ship()
 
 
-def auto_1_1_plus():
+def auto_1_1():
     set_foremost()
     for i in range(3):
         print("!! auto 1-1 (%d)" % i)
-        auto_1_1()
+        auto_1_1_single()
 
 
 def auto_3_2():
@@ -561,67 +568,50 @@ def auto_destroy_ship():
 #
 ################################################################
 
+ACTIONS = {
+    "11":   auto_1_1,
+    "11s":  auto_1_1_single,
+    "32":   auto_3_2,
+    "d":    auto_destroy_ship,
+    "r":    auto_battleresult,
+}
+
 
 def run_auto():
-    def empty_requests():
-        try:
-            APIServer.REQUESTS_LOCK.acquire()
-            del APIServer.REQUESTS[:]
-        finally:
-            APIServer.REQUESTS_LOCK.release()
-
-    prev_action = None
     while True:
         try:
-            action = input(">>> ")
+            cmd = input(">>> ")
         except KeyboardInterrupt:
             sys.exit(0)
-        if len(action) == 0:
-            action = prev_action
-        else:
-            prev_action = action
+        if len(cmd) > 0:
+            cmds = cmd.split()
+            action = cmds[0]
+            args = cmds[1:]
+
+        # debug action
+        if action == "show":
+            for request in APIServer.REQUESTS:
+                print(request)
+
+        if action == "empty":
+            server.empty()
+
+        if action == "wait":
+            server.empty()
+            wait(None)
 
         try:
-            if action == "show":
-                for request in APIServer.REQUESTS:
-                    print(request)
-
-            if action == "empty":
-                empty_requests()
-
-            if action == "wait":
-                empty_requests()
-                wait(None)
-
-            if action == "11s":
-                empty_requests()
-                auto_1_1()
-
-            if action == "11":
-                empty_requests()
-                auto_1_1_plus()
-
-            if action == "32":
-                empty_requests()
-                auto_3_2()
-
-            if action == "d":
-                empty_requests()
-                auto_destroy_ship()
-
-            if action == "r":
-                empty_requests()
-                auto_battleresult()
-
-            if action == "test":
-                set_foremost()
-                dock_back_to_port()
-
+            func = ACTIONS.get(action)
+            print(func)
+            if callable(func):
+                server.empty()
+                func(*args)
         except KeyboardInterrupt:
-            print(">>> exit")
+            pass
 
 
 if __name__ == '__main__':
     server = APIServer()
-    wait = server.wait
+    wait = server.wait  # Export server.wait to globals
+
     run_auto()
