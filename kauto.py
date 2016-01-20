@@ -21,7 +21,7 @@ class Global():
     BASE = (0, 23)
 
     # API 服务器监听端口
-    HOST = ("", 14585)
+    HOST = ("127.0.0.1", 14585)
 
 
 class Point():
@@ -602,12 +602,11 @@ def run_auto():
 
         try:
             func = ACTIONS.get(action)
-            print(func)
             if callable(func):
                 server.empty()
                 func(*args)
         except KeyboardInterrupt:
-            pass
+            print()     # newline
 
 
 if __name__ == '__main__':
