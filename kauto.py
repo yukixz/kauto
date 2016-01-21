@@ -9,19 +9,14 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import pyautogui
 
+from dfa import BaseDFA, BaseDFAStatus
+
 
 ################################################################
 #
 #  Utils
 #
 ################################################################
-
-class Global():
-    # 游戏左上角坐标
-    BASE = (0, 23)
-
-    # API 服务器监听端口
-    HOST = ("127.0.0.1", 14585)
 
 
 class Point():
@@ -48,8 +43,8 @@ class Point():
 def random_point(a, b=None):
     if b is None:
         b = a
-    x = Global.BASE[0] + random.randint(a.x, b.x)
-    y = Global.BASE[1] + random.randint(a.y, b.y)
+    x = config.base[0] + random.randint(a.x, b.x)
+    y = config.base[1] + random.randint(a.y, b.y)
     return Point(x, y)
 
 
@@ -177,11 +172,11 @@ class APIServer():
     REQUESTS_LOCK = threading.Lock()
 
     def __init__(self):
-        self.httpd = HTTPServer(Global.HOST, APIServerHandler)
+        self.httpd = HTTPServer(config.host, APIServerHandler)
         self.threaded_httpd = threading.Thread(target=self.httpd.serve_forever)
         self.threaded_httpd.daemon = True
         self.threaded_httpd.start()
-        print("Threaded API server listening on %s:%d" % Global.HOST)
+        print("Threaded API server listening on %s:%d" % config.host)
 
     def wait(self, path):
         ''' Wait for specified API request.
