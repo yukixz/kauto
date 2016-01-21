@@ -5,12 +5,13 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class BaseDFA(metaclass=ABCMeta):
-    # DFA Statuses
-    # A map from status name to status class/callable.
-    # Must contains status: start.
-    # Mustn't contains status: end.
-    @abstractproperty
-    statuses = {}
+    @abstractmethod
+    def __init__(self):
+        # DFA Statuses
+        # A map from status name to status class/callable.
+        # Must contains status: start.
+        # Mustn't contains status: end.
+        self.statuses = None
 
     def run(self):
         try:

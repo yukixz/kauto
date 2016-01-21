@@ -3,6 +3,7 @@
 import random
 import time
 
+import config
 import pyautogui
 
 

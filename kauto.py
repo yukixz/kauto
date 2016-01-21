@@ -5,6 +5,7 @@ import time
 
 from api_server import APIServer
 from dfa import BaseDFA, BaseDFAStatus
+from utils import Point, random_sleep, random_point, random_click
 
 
 ################################################################
