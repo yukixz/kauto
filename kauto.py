@@ -3,13 +3,10 @@
 import sys
 import time
 
+import game
 from api_server import api_server
 from dfa import BaseDFA, BaseDFAStatus
-from game import *
 from utils import Point, random_sleep, random_point, random_click
-
-# Export api_server.wait to globals
-wait = api_server.wait
 
 
 ################################################################
@@ -50,79 +47,78 @@ def port_has_damaged_ship(request):
 ################################################################
 
 def auto_1_1_single():
-    set_foremost()
+    game.set_foremost()
 
-    dock_back_to_port()
+    game.dock_back_to_port()
 
-    port_open_panel_sortie()
-    sortie_select(1, 1)
-    sortie_confirm()
+    game.port_open_panel_sortie()
+    game.sortie_select(1, 1)
+    game.sortie_confirm()
 
-    combat_map_loading()
-    combat_map_moving()
-    combat_move_to_button_left()
-    combat_result()
+    game.combat_map_loading()
+    game.combat_map_moving()
+    game.combat_move_to_button_left()
+    game.combat_result()
 
-    combat_advance()
-    combat_compass()
-    combat_map_moving()
-    combat_move_to_button_left()
-    combat_result()
+    game.combat_advance()
+    game.combat_compass()
+    game.combat_map_moving()
+    game.combat_move_to_button_left()
+    game.combat_result()
 
-    wait("/kcsapi/api_get_member/useitem")
+    api_server.wait("/kcsapi/api_get_member/useitem")
     random_sleep(1.6)
-    port_open_panel_supply()
-    supply_first_ship()
+    game.port_open_panel_supply()
+    game.supply_first_ship()
 
 
 def auto_1_1():
-    set_foremost()
-    for i in range(3):
+    for i in range(1, 4):
         print("!! auto 1-1 (%d)" % i)
         auto_1_1_single()
 
 
 def auto_3_2():
-    set_foremost()
+    game.set_foremost()
 
     while True:
-        request = dock_back_to_port()
+        request = game.dock_back_to_port()
         if port_has_damaged_ship(request):
             break
 
-        port_open_panel_sortie()
-        sortie_select(3, 2)
-        sortie_confirm()
+        game.port_open_panel_sortie()
+        game.sortie_select(3, 2)
+        game.sortie_confirm()
 
-        combat_map_loading()
-        combat_compass()
-        combat_map_moving()
-        combat_formation_double()
+        game.combat_map_loading()
+        game.combat_compass()
+        game.combat_map_moving()
+        game.combat_formation_double()
 
-        combat_result()
-        request = combat_retreat()
+        game.combat_result()
+        request = game.combat_retreat()
 
-        port_open_panel_supply()
-        supply_current_fleet()
+        game.port_open_panel_supply()
+        game.supply_current_fleet()
 
         if port_has_damaged_ship(request):
-            dock_open_panel_organize()
+            game.dock_open_panel_organize()
             break
 
 
 def auto_battleresult():
     while True:
-        combat_result()
+        game.combat_result()
         point = random_point(Point(400, 240))
         point.moveTo()
 
 
 def auto_destroy_ship():
-    set_foremost()
+    game.set_foremost()
     while True:
         print("!! auto destroy ship")
-        factory_destroy_select_first()
-        factory_destroy_do_destory()
+        game.factory_destroy_select_first()
+        game.factory_destroy_do_destory()
         random_sleep(0.4)
 
 
@@ -152,19 +148,14 @@ def run_auto():
             action = cmds[0]
             args = cmds[1:]
 
-        # debug action
-        if action == "show":
-            for request in APIServer.REQUESTS:
-                print(request)
-
-        if action == "empty":
-            api_server.empty()
-
         try:
             func = ACTIONS.get(action)
             if callable(func):
                 api_server.empty()
-                func(*args)
+                if issubclass(func, BaseDFA):
+                    func(*args).run()
+                else:
+                    func(*args)
         except KeyboardInterrupt:
             print()     # newline
 
