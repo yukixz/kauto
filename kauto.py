@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 
 import json
-import random
 import sys
 import threading
-from time import sleep
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
-
-import pyautogui
 
 from dfa import BaseDFA, BaseDFAStatus
 
@@ -17,52 +14,6 @@ from dfa import BaseDFA, BaseDFAStatus
 #  Utils
 #
 ################################################################
-
-
-class Point():
-    x = -1
-    y = -1
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def __str__(self):
-        return "Point(%d, %d)" % (self.x, self.y)
-
-    def click(self):
-        try:
-            pyautogui.click(self.x, self.y)
-        except pyautogui.FailSafeException:
-            print("!!", self)
-
-    def moveTo(self):
-        pyautogui.moveTo(self.x, self.y)
-
-
-def random_point(a, b=None):
-    if b is None:
-        b = a
-    x = config.base[0] + random.randint(a.x, b.x)
-    y = config.base[1] + random.randint(a.y, b.y)
-    return Point(x, y)
-
-
-def random_sleep(min, max=None, step=1):
-    ''' Wait for specified seconds.
-        # User can use Control-C to break this wait
-    '''
-    if max is None:
-        max = 1.1 * min
-    seconds = random.uniform(min, max)
-    # seconds = random.uniform(min, seconds)
-    # if seconds > 2.5:
-    #     print("sleep: %f" % seconds)
-    sleep(seconds)
-    # try:
-    #     time.sleep(seconds)
-    # except KeyboardInterrupt:
-    #     pass
 
 
 def port_has_damaged_ship(request):
@@ -199,7 +150,7 @@ class APIServer():
                 if request.path in path:
                     break
             else:
-                sleep(0.2)
+                time.sleep(0.2)
         return request
 
     def empty(self):
