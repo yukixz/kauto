@@ -33,7 +33,7 @@ class BaseDFA(metaclass=ABCMeta):
             traceback.print_exception()
 
 
-class BaseDFAStatus():
+class BaseDFAStatus(metaclass=ABCMeta):
     @abstractmethod
     def do(self):
         pass
