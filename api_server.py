@@ -121,3 +121,6 @@ class APIServer():
             del APIServer.REQUESTS[:]
         finally:
             APIServer.REQUESTS_LOCK.release()
+
+
+api_server = APIServer()
