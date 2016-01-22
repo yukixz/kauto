@@ -1,37 +1,26 @@
 #!/usr/bin/env python3
 
 import traceback
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 
 class BaseDFA(metaclass=ABCMeta):
     @abstractmethod
-    def __init__(self):
-        # DFA Statuses
-        # A map from status name to status class/callable.
-        # Must contains status: start.
-        # Mustn't contains status: end.
-        self.statuses = None
+    def start(self):
+        pass
 
     def run(self):
-        try:
-            name = "start"
-            while True:
-                body = self.statuses.get(name)
-                if name == "end":
-                    break
-                if body is None:
-                    print("WARNING: Unknown status name: %s" % name)
-                    break
-                if isinstance(body, str):
-                    name = body
-                    continue
-                if issubclass(body, BaseDFAStatus):
-                    name = body().do()
-                elif callable(body):
-                    name = body()
-        except:
-            traceback.print_exception()
+        status = self.start
+        while True:
+            # DFA End
+            if status is None:
+                break
+            # DFA Stauts
+            elif issubclass(status, BaseDFAStatus):
+                status = status().do()
+            # Raw function
+            elif callable(status):
+                status = status()
 
 
 class BaseDFAStatus(metaclass=ABCMeta):
