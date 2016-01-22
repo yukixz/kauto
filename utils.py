@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import math
 import random
 import time
 
@@ -39,8 +40,16 @@ class Point():
 def random_point(a, b=None):
     if b is None:
         b = a
-    x = random.randint(a.x, b.x)
-    y = random.randint(a.y, b.y)
+    # Get a point in a circle(a=1, b=1, r=1).
+    cr = random.random()
+    ca = random.randint(0, 360) / 180 * math.pi
+    cx = 1 + cr * math.cos(ca)
+    cy = 1 + cr * math.sin(ca)
+    # Transform
+    dx = b.x - a.x
+    dy = b.y - a.y
+    x = a.x + dx * cx / 2
+    y = a.y + dy * cy / 2
     return Point(x, y)
 
 
