@@ -203,14 +203,12 @@ class AutoExpedition(BaseDFA):
             if t is not None and t < end:
                 end = t
         wait_time = end - now
-        if wait_time < 0:
-            wait_time = 0
-            end = now
 
-        end_dt = datetime.fromtimestamp(end)
-        print("sleep:", end_dt.strftime("%I:%M:%S %p"))
-        # TODO: better sleep time
-        random_sleep(wait_time, wait_time + 60)
+        if wait_time > 60:
+            end_dt = datetime.fromtimestamp(end)
+            print("sleep:", end_dt.strftime("%I:%M:%S %p"))
+            # TODO: better sleep time
+            random_sleep(wait_time - 30, wait_time + 30)
 
         # Clear API server to avoid affect by player's action.
         api_server.empty()
