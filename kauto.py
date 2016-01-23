@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
+import math
+import random
 import sys
 import time
+import traceback
+from datetime import datetime
 
 import game
 from api_server import api_server
@@ -109,7 +113,7 @@ def auto_3_2():
 def auto_battleresult():
     while True:
         game.combat_result()
-        point = random_point(Point(400, 240))
+        point = Point(400, 240)
         point.moveTo()
 
 
@@ -120,6 +124,129 @@ def auto_destroy_ship():
         game.factory_destroy_select_first()
         game.factory_destroy_do_destory()
         random_sleep(0.4)
+
+
+class AutoExpedition(BaseDFA):
+    def __init__(self):
+        # Timestamp of stoping running.
+        self.stop_time = None
+
+        # Expedition No for fleet 2,3,4.
+        self.exp_no = [None, None, None]
+        # Expedition return time
+        self.exp_time = [None, None, None]
+        # Fleet status
+        # 0 = ready
+        # 1 = in expedition
+        # 2 = need supply
+        self.fleet_status = [None, None, None]
+
+        # Argument: Passing port data.
+        self.decks = None
+
+    def start(self, run_hours=4):
+        self.stop_time = time.time() + run_hours * 3600
+        print("Auto Expedition will run for %d hours." % run_hours)
+
+        request = api_server.wait("/kcsapi/api_port/port")
+        self.decks = request.body["api_deck_port"]
+        for deck in self.decks:
+            i = deck["api_id"] - 2
+            if i < 0:
+                continue
+            mission = deck["api_mission"]
+            if mission[0] in (1, 2) and mission[1] > 0:
+                self.exp_no[i] = mission[1]
+
+        print("Expedition:", self.exp_no)
+        return self.port
+
+    def port(self):
+        hasBack = hasSupply = hasDepart = False
+
+        for deck in self.decks:
+            i = deck["api_id"] - 2
+            if i < 0:
+                continue
+            if self.exp_no[i] is not None:
+                if deck["api_mission"][0] == 1:
+                    self.fleet_status[i] = 1
+                    self.exp_time[i] = deck["api_mission"][2] / 1000
+                if deck["api_mission"][0] == 2:
+                    hasBack = True
+                    self.fleet_status[i] = 2
+                    self.exp_time[i] = deck["api_mission"][2] / 1000
+
+                if self.fleet_status[i] == 0:
+                    hasDepart = True
+                if self.fleet_status[i] == 2:
+                    hasSupply = True
+
+        if hasBack:
+            return self.back
+        if hasSupply:
+            return self.supply
+        if hasDepart:
+            return self.depart
+        else:
+            return self.wait
+
+    def wait(self):
+        now = time.time()
+        if now > self.stop_time:
+            print("Reach running hours limit.")
+            return None
+
+        end = 2145888000    # 2038-01-01
+        for t in self.exp_time:
+            if t is not None and t < end:
+                end = t
+        wait_time = end - now
+        if wait_time < 0:
+            wait_time = 0
+            end = now
+
+        end_dt = datetime.fromtimestamp(end)
+        print("sleep:", end_dt.strftime("%I:%M:%S %p"))
+        # TODO: better sleep time
+        random_sleep(wait_time, wait_time + 60)
+
+        # refresh port
+        request = game.dock_back_to_port()
+        self.decks = request.body["api_deck_port"]
+        return self.port
+
+    def back(self):
+        ''' Take ONE fleet back.
+        '''
+        request = game.port_expedition_back()
+        self.decks = request.body["api_deck_port"]
+        return self.port
+
+    def supply(self):
+        ''' Supply all.
+        '''
+        game.port_open_panel_supply()
+        for i in range(3):
+            if self.exp_no[i] is not None and self.fleet_status[i] == 2:
+                game.supply_select_fleet(i + 2)
+                game.supply_current_fleet()
+                self.fleet_status[i] = 0
+
+        request = game.dock_back_to_port()
+        self.decks = request.body["api_deck_port"]
+        return self.port
+
+    def depart(self):
+        game.port_open_panel_expedition()
+        for i in range(3):
+            if self.exp_no[i] is not None and self.fleet_status[i] == 0:
+                game.expedition_select(self.exp_no[i])
+                game.expedition_confirm_1()
+                game.expedition_select_fleet(i + 2)
+                request = game.expedition_confirm_2()
+                self.decks = request.body
+        return self.port
 
 
 ################################################################
@@ -134,6 +261,7 @@ ACTIONS = {
     "32":   auto_3_2,
     "d":    auto_destroy_ship,
     "r":    auto_battleresult,
+    "e":    AutoExpedition,
 }
 
 
@@ -158,6 +286,8 @@ def run_auto():
                     func(*args)
         except KeyboardInterrupt:
             print()     # newline
+        except:
+            traceback.print_exc()
 
 
 if __name__ == '__main__':

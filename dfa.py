@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import traceback
 from abc import ABCMeta, abstractmethod
 
 
@@ -21,9 +20,17 @@ class BaseDFA(metaclass=ABCMeta):
             # Raw function
             elif callable(status):
                 status = status()
+            # Unknown
+            else:
+                raise UnknownDFAStatusException()
+                break
 
 
 class BaseDFAStatus(metaclass=ABCMeta):
     @abstractmethod
     def do(self):
         pass
+
+
+class UnknownDFAStatusException(Exception):
+    pass
