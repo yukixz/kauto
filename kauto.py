@@ -159,6 +159,7 @@ class AutoExpedition(BaseDFA):
                 self.exp_no[i] = mission[1]
 
         print("Expedition:", self.exp_no)
+        random_sleep(1)
         return self.port
 
     def port(self):

@@ -56,11 +56,12 @@ def port_expedition_back():
     point = random_point(Point(500, 320), Point(750, 420))
     point.click()
     request = wait("/kcsapi/api_port/port")
-    wait("api_get_member/useitem")
+    wait("/kcsapi/api_get_member/useitem")
     random_sleep(9)
     point.click()
-    random_sleep(2)
+    random_sleep(1)
     point.click()
+    random_sleep(3)
     return request
 
 
@@ -424,7 +425,7 @@ def expedition_select(i):
     select_map = globals()["expedition_select_map_%d" % map]
     select_mission = globals()["expedition_select_mission_%d" % mission]
     if callable(select_map) and callable(select_mission):
-        select_area()
+        select_map()
         random_sleep(0.6)
         select_mission()
         random_sleep(1)
@@ -466,5 +467,5 @@ def expedition_confirm_2():
     print("expedition_confirm_2")
     random_click(Point(579, 432), Point(694, 456))
     request = wait("/kcsapi/api_get_member/deck")
-    random_sleep(1)
+    random_sleep(5)
     return request
