@@ -212,7 +212,8 @@ class AutoExpedition(BaseDFA):
         # TODO: better sleep time
         random_sleep(wait_time, wait_time + 60)
 
-        # refresh port
+        # Clear API server to avoid affect by player's action.
+        api_server.empty()
         request = game.dock_back_to_port()
         self.decks = request.body["api_deck_port"]
         return self.port
