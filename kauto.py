@@ -127,9 +127,11 @@ def auto_destroy_ship():
 
 
 class AutoExpedition(BaseDFA):
-    def __init__(self):
+    def __init__(self, run_hours=4):
         # Timestamp of stoping running.
-        self.stop_time = None
+        run_hours = int(run_hours)
+        self.stop_time = time.time() + run_hours * 3600
+        print("Auto Expedition will run for %d hours." % run_hours)
 
         # Expedition No for fleet 2,3,4.
         self.exp_no = [None, None, None]
@@ -144,10 +146,7 @@ class AutoExpedition(BaseDFA):
         # Argument: Passing port data.
         self.decks = None
 
-    def start(self, run_hours=4):
-        self.stop_time = time.time() + run_hours * 3600
-        print("Auto Expedition will run for %d hours." % run_hours)
-
+    def start(self):
         request = api_server.wait("/kcsapi/api_port/port")
         self.decks = request.body["api_deck_port"]
         for deck in self.decks:
@@ -194,10 +193,6 @@ class AutoExpedition(BaseDFA):
 
     def wait(self):
         now = time.time()
-        if now > self.stop_time:
-            print("Reach running hours limit.")
-            return None
-
         end = 2145888000    # 2038-01-01
         for t in self.exp_time:
             if t is not None and t < end:
@@ -209,6 +204,10 @@ class AutoExpedition(BaseDFA):
             print("sleep:", end_dt.strftime("%I:%M:%S %p"))
             # TODO: better sleep time
             random_sleep(wait_time - 30, wait_time + 30)
+
+        if time.time() > self.stop_time:
+            print("Reach running hours limit.")
+            return None
 
         # Clear API server to avoid affect by player's action.
         api_server.empty()
@@ -284,6 +283,8 @@ def run_auto():
                     func(*args).run()
                 else:
                     func(*args)
+            else:
+                print("Unknown command:", cmd)
         except KeyboardInterrupt:
             print()     # newline
         except:

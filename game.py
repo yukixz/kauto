@@ -61,7 +61,7 @@ def port_expedition_back():
     point.click()
     random_sleep(1)
     point.click()
-    random_sleep(3)
+    random_sleep(2)
     return request
 
 
