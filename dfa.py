@@ -14,12 +14,15 @@ class BaseDFA(metaclass=ABCMeta):
             # DFA End
             if status is None:
                 break
-            # DFA Stauts
-            elif issubclass(status, BaseDFAStatus):
-                status = status().do()
-            # Raw function
-            elif callable(status):
-                status = status()
+
+            print("DFA", "=>", status.__name__)
+            if callable(status):
+                # DFA Stauts
+                if issubclass(status, BaseDFAStatus):
+                    status = status().do()
+                # Raw function
+                else:
+                    status = status()
             # Unknown
             else:
                 raise UnknownDFAStatusException()
