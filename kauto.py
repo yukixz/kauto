@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import math
-import random
 import sys
 import time
 import traceback

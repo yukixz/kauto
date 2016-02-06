@@ -13,48 +13,30 @@ class Request():
     path = None
     _body = None
 
-    def __init__(self, path, body=None):
-        self.path = path
-        self.body = body
+    def __init__(self, raw_data):
+        # Throw exception to parent
+        data = json.loads(raw_data)
+        self.method = data["method"]
+        self.path = data["path"]
+        self.body = data["body"]
+        self.post_body = data["postBody"]
+        print(self)
 
     def __str__(self):
         return '''Request(path="%s")''' % self.path
 
-    @property
-    def body(self):
-        if type(self._body) is str:
-            body = None
-            try:
-                body = json.loads(self._body)
-                self._body = body
-            finally:
-                return body
-        else:
-            return self._body
-
-    @body.setter
-    def body(self, body):
-        self._body = body
-
 
 class APIServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        # self.log_request()
-        try:
-            APIServer.REQUESTS_LOCK.acquire()
-            APIServer.REQUESTS.append(Request(self.path))
-        finally:
-            APIServer.REQUESTS_LOCK.release()
-        self.send_response(200)
+        self.send_response(404)
         self.end_headers()
 
     def do_POST(self):
-        # self.log_request()
         length = int(self.headers['Content-Length'])
         body = self.rfile.read(length).decode('utf-8')
         try:
             APIServer.REQUESTS_LOCK.acquire()
-            APIServer.REQUESTS.append(Request(self.path, body))
+            APIServer.REQUESTS.append(Request(body))
         finally:
             APIServer.REQUESTS_LOCK.release()
         self.send_response(200)
@@ -67,17 +49,6 @@ class APIServerHandler(BaseHTTPRequestHandler):
         self.send_response_only(code, message)
         self.send_header('Server', self.version_string())
         self.send_header('Date', self.date_time_string())
-
-    # override
-    def log_request(self, message=''):
-        self.log_message("%s %s - %s",
-                         self.command, self.path, message)
-
-    # override
-    def log_message(self, format, *args):
-        sys.stderr.write("[%s] %s\n" %
-                         (self.log_date_time_string(),
-                          format % args))
 
 
 class APIServer():

@@ -1,20 +1,28 @@
 request = require 'request'
 
-handleResponse = (e) ->
+window.addEventListener 'game.response', (e) ->
   {method, path, body, postBody} = e.detail
-  request
-    method: method
-    url: "http://localhost:14585" + path
-    body: body
-    json: true
+  request.post
+    url: "http://127.0.0.1:14585/"
     timeout: 4000
-  .on 'error', (err) ->
-    # ...
-window.addEventListener 'game.response', handleResponse
+    json: true
+    body:
+      method: method
+      path: path
+      body: body
+      postBody: postBody
+  .on 'response', (response) ->
+    console.log "kauto sent:", path
+
+# Set windows bounds
+w = remote.getCurrentWindow()
+b = w.getBounds()
+b.x = b.y = 0
+w.setBounds(b)
 
 module.exports =
-  name: 'auto-interactor'
-  displayName: 'auto-interactor'
+  name: 'kauto-interactor'
+  displayName: 'kauto-interactor'
   description: ''
   author: ''
   link: ''
