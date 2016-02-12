@@ -224,6 +224,11 @@ def sortie_select_area_4():
     raise NotImplementedError("sortie_select_area_4 is not implemented!")
 
 
+# 出击：EX-*
+def sortie_select_area_ex():
+    random_click(Point(670, 450-22), Point(750, 480-22))
+
+
 # 出击：a-b
 def sortie_select(area, map):
     print("sortie_select: %d-%d" % (area, map))
@@ -265,6 +270,13 @@ def combat_compass():
 
 
 # 陣形：複縦陣
+def combat_formation_line():
+    print("combat_formation_line")
+    point = random_point(Point(403, 200-22), Point(492, 216-22))
+    point.click()
+
+
+# 陣形：複縦陣
 def combat_formation_double():
     print("combat_formation_double")
     point = random_point(Point(538, 200-22), Point(616, 216-22))
@@ -275,6 +287,13 @@ def combat_formation_double():
 def combat_formation_abreast():
     print("combat_formation_abreast")
     point = random_point(Point(607, 355-22), Point(685, 374-22))
+    point.click()
+
+
+# 陣形：
+def combat_formation_diamond():
+    print("combat_formation_diamond")
+    point = random_point(Point(667, 200-22), Point(755, 216-22))
     point.click()
 
 
@@ -290,6 +309,11 @@ def combat_button_right():
 
 def combat_move_to_button_left():
     point = random_point(Point(257, 247-22), Point(327, 289-22))
+    point.moveTo()
+
+
+def combat_move_to_button_right():
+    point = random_point(Point(473, 238-22), Point(551, 289-22))
     point.moveTo()
 
 
@@ -357,6 +381,16 @@ def combat_map_loading():
 def combat_map_moving():
     print("combat_map_moving")
     random_sleep(6)
+
+
+def combat_map_next():
+    print("combat_map_next")
+    wait("/kcsapi/api_req_map/next")
+
+
+def combat_map_enemy_animation():
+    print("combat_map_enemy_animation")
+    random_sleep(2)
 
 
 ################################################################

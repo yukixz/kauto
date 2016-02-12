@@ -108,7 +108,7 @@ def auto_3_2():
             break
 
 
-def auto_battleresult():
+def help_battleresult():
     while True:
         game.combat_result()
         point = Point(400, 240)
@@ -246,6 +246,56 @@ class AutoExpedition(BaseDFA):
         return self.port
 
 
+def help_e2():
+    while True:
+        request = api_server.wait("/")
+
+        if request.path == "/kcsapi/api_req_map/start":
+            if request.body["api_no"] == 1:
+                game.combat_map_loading()
+                game.combat_map_moving()
+                game.combat_map_enemy_animation()
+                game.combat_formation_abreast()
+                game.combat_move_to_button_left()
+                game.combat_result()
+                game.combat_move_to_button_left()
+
+        if request.path == "/kcsapi/api_req_map/next":
+            random_sleep(1.4)
+            if request.body["api_no"] == 5:
+                game.combat_compass()
+                game.combat_map_moving()
+                game.combat_map_enemy_animation()
+                random_click(Point(353, 137-22), Point(366, 153-22))
+
+            if request.body["api_no"] == 9:
+                game.combat_map_moving()
+                game.combat_formation_diamond()
+                game.combat_move_to_button_left()
+                game.combat_result()
+                game.combat_move_to_button_left()
+
+            if request.body["api_no"] == 18:
+                game.combat_map_moving()
+                game.combat_formation_line()
+                game.combat_move_to_button_left()
+                game.combat_result()
+                game.combat_move_to_button_left()
+
+            if request.body["api_no"] == 13:
+                game.combat_map_moving()
+                game.combat_formation_double()
+                game.combat_move_to_button_left()
+                game.combat_result()
+                game.combat_move_to_button_left()
+
+            if request.body["api_no"] == 15:
+                game.combat_map_moving()
+                game.combat_formation_line()
+                game.combat_move_to_button_right()
+                game.combat_result()
+
+
 ################################################################
 #
 #  Script control
@@ -257,8 +307,9 @@ ACTIONS = {
     "11s":  auto_1_1_single,
     "32":   auto_3_2,
     "d":    auto_destroy_ship,
-    "r":    auto_battleresult,
+    "r":    help_battleresult,
     "e":    AutoExpedition,
+    "e2":   help_e2,
 }
 
 
