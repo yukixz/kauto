@@ -20,7 +20,6 @@ class Request():
         self.path = data["path"]
         self.body = data["body"]
         self.post_body = data["postBody"]
-        print(self)
 
     def __str__(self):
         return '''Request(path="%s")''' % self.path
@@ -62,26 +61,29 @@ class APIServer():
         self.threaded_httpd.start()
         print("Threaded API server listening on %s:%d" % config.host)
 
-    def wait(self, path):
+    def wait(self, paths):
         ''' Wait for specified API request.
             User can use Control-C to break this wait
             @param  API path
             @return Request object
         '''
-        if type(path) not in [list, tuple]:
-            path = (path,)
-        print("wait: %s" % path[0])
+        if type(paths) not in [list, tuple]:
+            paths = (paths,)
+        print("wait: %s" % paths[0])
 
+        waiting = True
         request = None
-        while True:
+        while waiting:
             if len(APIServer.REQUESTS) > 0:
                 try:
                     APIServer.REQUESTS_LOCK.acquire()
                     request = APIServer.REQUESTS.pop(0)
                 finally:
                     APIServer.REQUESTS_LOCK.release()
-                if request.path in path:
-                    break
+                print(request)
+                for path in paths:
+                    if request.path.startswith(path):
+                        waiting = False
             else:
                 time.sleep(0.2)
         return request
