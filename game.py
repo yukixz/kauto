@@ -297,6 +297,26 @@ def combat_formation_diamond():
     point.click()
 
 
+def combat_formation_combined_antisub():
+    print("combat_formation_combined_antisub")
+    random_click(Point(435, 187-22), Point(563, 208-22))
+
+
+def combat_formation_combined_forward():
+    print("combat_formation_combined_forward")
+    random_click(Point(602, 187-22), Point(728, 208-22))
+
+
+def combat_formation_combined_ring():
+    print("combat_formation_combined_ring")
+    random_click(Point(435, 324-22), Point(563, 345-22))
+
+
+def combat_formation_combined_battle():
+    print("combat_formation_combined_battle")
+    random_click(Point(602, 324-22), Point(728, 345-22))
+
+
 def combat_button_left():
     point = random_point(Point(257, 247-22), Point(327, 289-22))
     point.click()
@@ -359,7 +379,7 @@ def combat_result():
     random_sleep(7.4)
     point.click()
     if "api_get_ship_exp" in request.body:
-        random_sleep(5)
+        random_sleep(5.3)
         point.click()
     if "api_get_ship_exp_combined" in request.body:
         random_sleep(6.6)
