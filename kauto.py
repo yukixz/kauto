@@ -108,6 +108,32 @@ def auto_3_2():
             break
 
 
+def help_5_4():
+    while True:
+        request = api_server.wait(("/kcsapi/api_req_map/next",
+                                   "/kcsapi/api_req_map/start"))
+
+        if request.body["api_no"] == 1:
+            game.combat_map_loading()
+            game.combat_compass()
+            game.combat_map_moving()
+            game.combat_formation_line()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+        if request.body["api_no"] in (7, 18):
+            random_sleep(2)
+            game.combat_compass()
+
+        if request.body["api_no"] in (12, 19):
+            game.combat_map_moving()
+            game.combat_formation_line()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+
 def help_battleresult():
     while True:
         game.combat_result()
@@ -296,6 +322,52 @@ def help_e2():
                 game.combat_result()
 
 
+def help_e3():
+    while True:
+        request = api_server.wait(("/kcsapi/api_req_map/next",
+                                   "/kcsapi/api_req_map/start"))
+        random_sleep(2)
+
+        if request.body["api_no"] == 1:
+            game.combat_map_loading()
+            game.combat_map_moving()
+            game.combat_formation_combined_forward()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+        if request.body["api_no"] == 2:
+            game.combat_map_moving()
+            game.combat_formation_combined_battle()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+        if request.body["api_no"] == 3:
+            game.combat_compass()
+            game.combat_map_moving()
+            game.combat_formation_combined_ring()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+        if request.body["api_no"] == 21:
+            game.combat_map_moving()
+            game.combat_formation_combined_forward()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+        if request.body["api_no"] == 7:
+            game.combat_map_moving()
+
+        if request.body["api_no"] == 19:
+            game.combat_map_moving()
+            game.combat_formation_combined_battle()
+            game.combat_move_to_button_right()
+            game.combat_result()
+
+
 ################################################################
 #
 #  Script control
@@ -306,14 +378,40 @@ ACTIONS = {
     "11":   auto_1_1,
     "11s":  auto_1_1_single,
     "32":   auto_3_2,
+    "54":   help_5_4,
     "d":    auto_destroy_ship,
     "r":    help_battleresult,
     "e":    AutoExpedition,
     "e2":   help_e2,
+    "e3":   help_e3,
 }
 
 
-def run_auto():
+def run(action, args):
+    try:
+        func = ACTIONS.get(action)
+        if callable(func):
+            api_server.empty()
+            if issubclass(func, BaseDFA):
+                func(*args).run()
+            else:
+                func(*args)
+        else:
+            print("Unknown command:", cmd)
+    except KeyboardInterrupt:
+        print()     # newline
+    except:
+        traceback.print_exc()
+
+
+if __name__ == '__main__':
+    cmds = sys.argv[1:]
+    if len(cmds) > 0:
+        action = cmds[0]
+        args = cmds[1:]
+        run(action, args)
+        sys.exit(0)
+
     while True:
         try:
             cmd = input(">>> ")
@@ -323,22 +421,4 @@ def run_auto():
             cmds = cmd.split()
             action = cmds[0]
             args = cmds[1:]
-
-        try:
-            func = ACTIONS.get(action)
-            if callable(func):
-                api_server.empty()
-                if issubclass(func, BaseDFA):
-                    func(*args).run()
-                else:
-                    func(*args)
-            else:
-                print("Unknown command:", cmd)
-        except KeyboardInterrupt:
-            print()     # newline
-        except:
-            traceback.print_exc()
-
-
-if __name__ == '__main__':
-    run_auto()
+        run(action, args)
