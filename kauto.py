@@ -272,66 +272,12 @@ class AutoExpedition(BaseDFA):
         return self.port
 
 
-def help_e1():
-    while True:
-        request = api_server.wait(("/kcsapi/api_req_map/next",
-                                   "/kcsapi/api_req_map/start"))
-
-        random_sleep(2)
-
-        if request.body["api_no"] == 2:
-            game.combat_map_loading()
-            game.combat_compass()
-            game.combat_map_moving()
-            game.combat_map_enemy_animation()
-            game.combat_formation_abreast()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 6:
-            game.combat_map_moving()
-            game.combat_formation_line()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 4:
-            game.combat_map_moving()
-            game.combat_formation_line()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 10:
-            game.combat_compass()
-            game.combat_map_moving()
-            random_sleep(5.6)   # Scout
-            game.combat_formation_abreast()
-            random_sleep(10)    # load boss dialog
-            print("Debuug: boss_dialog")
-            random_click(Point(500, 320), Point(750, 420))  # skip boss dialog
-            game.combat_move_to_button_left()
-            game.combat_result()
-
-
 def help_e2():
     while True:
-        request = api_server.wait(("/kcsapi/api_req_map/next",
-                                   "/kcsapi/api_req_map/start"))
+        request = api_server.wait("/")
 
         if request.path == "/kcsapi/api_req_map/start":
             if request.body["api_no"] == 1:
-                game.combat_map_loading()
-                game.combat_map_moving()
-                game.combat_map_enemy_animation()
-                game.combat_formation_abreast()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # Southern Path Start -> C
-            if request.body["api_no"] == 3:
                 game.combat_map_loading()
                 game.combat_map_moving()
                 game.combat_map_enemy_animation()
@@ -372,43 +318,6 @@ def help_e2():
             if request.body["api_no"] == 15:
                 game.combat_map_moving()
                 game.combat_formation_line()
-                game.combat_move_to_button_right()
-                game.combat_result()
-
-            # Southern Path
-            # C -> G
-            if request.body["api_no"] == 7:
-                game.combat_compass()
-                game.combat_map_moving()
-                game.combat_formation_double()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # G -> K
-            if request.body["api_no"] == 11:
-                game.combat_map_moving()
-                game.combat_formation_diamond()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # K -> N
-            if request.body["api_no"] == 14:
-                game.combat_compass()
-                game.combat_map_moving()
-                game.combat_formation_double()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # N -> O
-            if request.body["api_no"] == 21:
-                game.combat_map_moving()
-                game.combat_formation_double()
-                random_sleep(10)    # load boss dialog
-                print("Debuug: boss_dialog")
-                random_click(Point(500, 320), Point(750, 420))  # skip boss dialog
                 game.combat_move_to_button_right()
                 game.combat_result()
 
@@ -473,7 +382,6 @@ ACTIONS = {
     "d":    auto_destroy_ship,
     "r":    help_battleresult,
     "e":    AutoExpedition,
-    "e1":   help_e1,
     "e2":   help_e2,
     "e3":   help_e3,
 }
