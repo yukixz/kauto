@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import math
+import os
 import random
 import time
 
@@ -71,3 +72,17 @@ def random_sleep(min, max=None):
         max = 1.1 * min
     seconds = random.uniform(min, max)
     time.sleep(seconds)
+
+
+def hotkey_refresh():
+    if os.name == 'nt':
+        pyautogui.press('f5')
+    else:
+        pyautogui.hotkey('ctrl', 'r')
+
+
+def hotkey_switch_panel(panel):
+    available = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+    if panel in available:
+        pyautogui.hotkey('ctrl', panel)
