@@ -81,9 +81,8 @@ class APIServer():
                 finally:
                     APIServer.REQUESTS_LOCK.release()
                 print(request)
-                for path in paths:
-                    if request.path.startswith(path):
-                        waiting = False
+                if request.path in paths:
+                    waiting = False
             else:
                 time.sleep(0.2)
         return request
