@@ -6,9 +6,10 @@ import traceback
 from datetime import datetime
 
 import game
+import utils
 from api_server import api_server
 from dfa import BaseDFA, BaseDFAStatus
-from utils import Point, random_sleep, random_point, random_click
+from utils import Point, random_point, random_click
 from battle import battle_analyze, battle_timer
 
 
@@ -81,7 +82,7 @@ def auto_1_1_single():
     game.combat_result()
 
     api_server.wait("/kcsapi/api_get_member/useitem")
-    random_sleep(1.6)
+    utils.random_sleep(1.6)
     game.port_open_panel_supply()
     game.supply_first_ship()
 
@@ -125,7 +126,10 @@ def help_5_4():
         request = api_server.wait(("/kcsapi/api_req_map/next",
                                    "/kcsapi/api_req_map/start"))
 
-        if request.body["api_no"] == 1:
+        # HS: c1d c7 12d c18 19d
+        # SS: c2 4d 6n 9 c10d 15d
+
+        if request.body["api_no"] in (1,):
             game.combat_map_loading()
             game.combat_compass()
             game.combat_map_moving()
@@ -134,11 +138,23 @@ def help_5_4():
             game.combat_result()
             game.combat_move_to_button_left()
 
-        if request.body["api_no"] in (7, 18):
-            random_sleep(2)
+        if request.body["api_no"] in (2,):
+            game.combat_map_loading()
             game.combat_compass()
 
-        if request.body["api_no"] in (12, 19):
+        if request.body["api_no"] in (7, 18):
+            utils.random_sleep(2)
+            game.combat_compass()
+
+        if request.body["api_no"] in (10,):
+            game.combat_compass()
+            game.combat_map_moving()
+            game.combat_formation_line()
+            game.combat_move_to_button_left()
+            game.combat_result()
+            game.combat_move_to_button_left()
+
+        if request.body["api_no"] in (4, 6, 10, 12, 15, 19):
             game.combat_map_moving()
             game.combat_formation_line()
             game.combat_move_to_button_left()
@@ -159,7 +175,7 @@ def auto_destroy_ship():
         print("!! auto destroy ship")
         game.factory_destroy_select_first()
         game.factory_destroy_do_destory()
-        random_sleep(0.4)
+        utils.random_sleep(0.4)
 
 
 class AutoExpedition(BaseDFA):
@@ -194,7 +210,7 @@ class AutoExpedition(BaseDFA):
                 self.exp_no[i] = mission[1]
 
         print("Expedition:", self.exp_no)
-        random_sleep(1)
+        utils.random_sleep(1)
         return self.port
 
     def port(self):
@@ -228,18 +244,11 @@ class AutoExpedition(BaseDFA):
             return self.wait
 
     def wait(self):
-        now = time.time()
         end = 2145888000    # 2038-01-01
         for t in self.exp_time:
             if t is not None and t < end:
                 end = t
-        wait_time = end - now
-
-        if wait_time > 60:
-            end_dt = datetime.fromtimestamp(end)
-            print("sleep:", end_dt.strftime("%I:%M:%S %p"))
-            # TODO: better sleep time
-            random_sleep(wait_time - 30, wait_time + 30)
+        utils.random_sleep_until(end - 50, end + 30, 60)
 
         if time.time() > self.stop_time:
             print("Reach running hours limit.")
@@ -284,192 +293,6 @@ class AutoExpedition(BaseDFA):
         return self.port
 
 
-def help_e1():
-    while True:
-        request = api_server.wait(("/kcsapi/api_req_map/next",
-                                   "/kcsapi/api_req_map/start"))
-
-        random_sleep(2)
-
-        if request.body["api_no"] == 2:
-            game.combat_map_loading()
-            game.combat_compass()
-            game.combat_map_moving()
-            game.combat_map_enemy_animation()
-            game.combat_formation_abreast()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 6:
-            game.combat_map_moving()
-            game.combat_formation_line()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 4:
-            game.combat_map_moving()
-            game.combat_formation_line()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 10:
-            game.combat_compass()
-            game.combat_map_moving()
-            random_sleep(5.6)   # Scout
-            game.combat_formation_abreast()
-            random_sleep(10)    # load boss dialog
-            print("Debuug: boss_dialog")
-            random_click(Point(500, 320), Point(750, 420))  # skip boss dialog
-            game.combat_move_to_button_left()
-            game.combat_result()
-
-
-def help_e2():
-    while True:
-        request = api_server.wait(("/kcsapi/api_req_map/next",
-                                   "/kcsapi/api_req_map/start"))
-
-        if request.path == "/kcsapi/api_req_map/start":
-            if request.body["api_no"] == 1:
-                game.combat_map_loading()
-                game.combat_map_moving()
-                game.combat_map_enemy_animation()
-                game.combat_formation_abreast()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # Southern Path Start -> C
-            if request.body["api_no"] == 3:
-                game.combat_map_loading()
-                game.combat_map_moving()
-                game.combat_map_enemy_animation()
-                game.combat_formation_abreast()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-        if request.path == "/kcsapi/api_req_map/next":
-            random_sleep(1.4)
-            if request.body["api_no"] == 5:
-                game.combat_compass()
-                game.combat_map_moving()
-                game.combat_map_enemy_animation()
-                random_click(Point(353, 137-22), Point(366, 153-22))
-
-            if request.body["api_no"] == 9:
-                game.combat_map_moving()
-                game.combat_formation_diamond()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            if request.body["api_no"] == 18:
-                game.combat_map_moving()
-                game.combat_formation_line()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            if request.body["api_no"] == 13:
-                game.combat_map_moving()
-                game.combat_formation_double()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            if request.body["api_no"] == 15:
-                game.combat_map_moving()
-                game.combat_formation_line()
-                game.combat_move_to_button_right()
-                game.combat_result()
-
-            # Southern Path
-            # C -> G
-            if request.body["api_no"] == 7:
-                game.combat_compass()
-                game.combat_map_moving()
-                game.combat_formation_double()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # G -> K
-            if request.body["api_no"] == 11:
-                game.combat_map_moving()
-                game.combat_formation_diamond()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # K -> N
-            if request.body["api_no"] == 14:
-                game.combat_compass()
-                game.combat_map_moving()
-                game.combat_formation_double()
-                game.combat_move_to_button_left()
-                game.combat_result()
-                game.combat_move_to_button_left()
-
-            # N -> O
-            if request.body["api_no"] == 21:
-                game.combat_map_moving()
-                game.combat_formation_double()
-                random_sleep(10)    # load boss dialog
-                print("Debuug: boss_dialog")
-                random_click(Point(500, 320), Point(750, 420))  # skip boss dialog
-                game.combat_move_to_button_right()
-                game.combat_result()
-
-
-def help_e3():
-    while True:
-        request = api_server.wait(("/kcsapi/api_req_map/next",
-                                   "/kcsapi/api_req_map/start"))
-        random_sleep(2)
-
-        if request.body["api_no"] == 1:
-            game.combat_map_loading()
-            game.combat_map_moving()
-            game.combat_formation_combined_forward()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 2:
-            game.combat_map_moving()
-            game.combat_formation_combined_battle()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 3:
-            game.combat_compass()
-            game.combat_map_moving()
-            game.combat_formation_combined_ring()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 21:
-            game.combat_map_moving()
-            game.combat_formation_combined_forward()
-            game.combat_move_to_button_left()
-            game.combat_result()
-            game.combat_move_to_button_left()
-
-        if request.body["api_no"] == 7:
-            game.combat_map_moving()
-
-        if request.body["api_no"] == 19:
-            game.combat_map_moving()
-            game.combat_formation_combined_battle()
-            game.combat_move_to_button_right()
-            game.combat_result()
-
 
 ################################################################
 #
@@ -485,9 +308,6 @@ ACTIONS = {
     "d":    auto_destroy_ship,
     "r":    help_battleresult,
     "e":    AutoExpedition,
-    "e1":   help_e1,
-    "e2":   help_e2,
-    "e3":   help_e3,
     "tba":  test_battle_analyze
 }
 
