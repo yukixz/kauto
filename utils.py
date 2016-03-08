@@ -3,6 +3,7 @@
 import math
 import random
 import time
+from datetime import datetime
 
 import config
 import pyautogui
@@ -68,6 +69,22 @@ def random_click(a, b=None):
 
 def random_sleep(min, max=None):
     if max is None:
-        max = 1.1 * min
+        max = min * 1.1
     seconds = random.uniform(min, max)
+    # print("sleep:", seconds)
+    time.sleep(seconds)
+
+
+def random_sleep_until(min, max=None, floor=0):
+    if max is None:
+        max = min
+
+    now = time.time()
+    end = random.uniform(min, max)
+    seconds = end - now
+    if seconds <= floor:
+        return
+
+    end_dt = datetime.fromtimestamp(end)
+    print("sleep until:", end_dt.strftime("%I:%M:%S %p"))
     time.sleep(seconds)
