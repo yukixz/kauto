@@ -9,6 +9,7 @@ import game
 from api_server import api_server
 from dfa import BaseDFA, BaseDFAStatus
 from utils import Point, random_sleep, random_point, random_click
+from battle import battle_analyze, battle_timer
 
 
 ################################################################
@@ -47,6 +48,17 @@ def port_has_damaged_ship(request):
 #  Automatic Script
 #
 ################################################################
+
+def test_battle_analyze():
+    # Assure current fleet is not combined.
+    while True:
+        battle_request = api_server.wait(['/kcsapi/api_req_sortie/battle', 
+                                          '/kcsapi/api_req_sortie/airbattle', 
+                                          '/kcsapi/api_req_battle_midnight/battle', 
+                                          '/kcsapi/api_req_battle_midnight/sp_midnight', 
+                                          '/kcsapi/api_req_sortie/ld_airbattle'])
+        battle_analyze(battle_request, 0, True)
+
 
 def auto_1_1_single():
     game.set_foremost()
@@ -476,6 +488,7 @@ ACTIONS = {
     "e1":   help_e1,
     "e2":   help_e2,
     "e3":   help_e3,
+    "tba":  test_battle_analyze
 }
 
 

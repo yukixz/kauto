@@ -35,7 +35,7 @@ class Ship:
 #  TODO: Repair item
 #
 ################################################################
-def battle_analyze(battle_request, combined=0):
+def battle_analyze(battle_request, combined=0, debug=False):
     def kouku_attack(fleet, kouku):
         if 'api_fdam' in kouku:
             i = 0
@@ -103,16 +103,16 @@ def battle_analyze(battle_request, combined=0):
 
     # First kouku battle
     if battle_data.get('api_kouku', None) is not None:
-        if battle_data.get['api_kouku']('api_stage3', None) is not None:
+        if battle_data['api_kouku'].get('api_stage3', None) is not None:
             kouku_attack(main_fleet, battle_data['api_kouku']['api_stage3'])
-        if battle_data.get['api_kouku']('api_stage3_combined', None) is not None:
+        if battle_data['api_kouku'].get('api_stage3_combined', None) is not None:
             kouku_attack(escort_fleet, battle_data['api_kouku']['api_stage3_combined'])
 
     # Second kouku battle
     if battle_data.get('api_kouku2', None) is not None:
-        if battle_data.get['api_kouku2']('api_stage3', None) is not None:
+        if battle_data['api_kouku2'].get('api_stage3', None) is not None:
             kouku_attack(main_fleet, battle_data['api_kouku2']['api_stage3'])
-        if battle_data.get['api_kouku2']('api_stage3_combined', None) is not None:
+        if battle_data['api_kouku2'].get('api_stage3_combined', None) is not None:
             kouku_attack(escort_fleet, battle_data['api_kouku']['api_stage3_combined'])
 
     # Support battle is ignored for now
@@ -155,6 +155,17 @@ def battle_analyze(battle_request, combined=0):
             raigeki_attack(escort_fleet, battle_data['api_raigeki'])
         else:
             raigeki_attack(main_fleet, battle_data['api_raigeki'])
+
+    # Debug: print analyze result
+    if debug:
+    	print("Last_battle:")
+    	print("\tmain_feet:")
+    	for i in range(0,6):
+    		print('\t', main_fleet[i].now_hp, " / ", main_fleet[i].max_hp)
+    	if combined > 0:
+    		print("\tmain_feet:")
+    		for i in range(0,6):
+    			print('\t', escort_fleet[i].now_hp, " / ", escort_fleet[i].max_hp)
 
     # Calculate the result of the battle
     if main_fleet[0].now_hp * 4 < main_fleet[0].max_hp:
