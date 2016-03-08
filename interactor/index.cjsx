@@ -11,8 +11,9 @@ window.addEventListener 'game.response', (e) ->
       path: path
       body: body
       postBody: postBody
-  .on 'response', (response) ->
-    console.log "kauto sent:", path
+  .on 'error', (err) ->
+    return if err.code in ['ECONNREFUSED']
+    console.error "kauto:", err
 
 # Set windows bounds
 w = remote.getCurrentWindow()
@@ -21,11 +22,4 @@ b.x = b.y = 0
 w.setBounds(b)
 
 module.exports =
-  name: 'kauto-interactor'
-  displayName: 'kauto-interactor'
-  description: ''
-  author: ''
-  link: ''
   show: false
-  priority: 999
-  version: ''
