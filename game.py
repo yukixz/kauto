@@ -376,7 +376,7 @@ def combat_result():
     request = wait(['/kcsapi/api_req_sortie/battleresult',
                     '/kcsapi/api_req_combined_battle/battleresult',
                     '/kcsapi/api_req_practice/battle_result'])
-    random_sleep(7.4)
+    random_sleep(7.6)
     point.click()
     if "api_get_ship_exp" in request.body:
         random_sleep(5.3)
@@ -390,12 +390,12 @@ def combat_result():
     if "api_get_ship" in request.body:
         random_sleep(7.6)   # 获得舰船
         point.click()
-    random_sleep(2)
+    random_sleep(1)
 
 
 def combat_map_loading():
     print("combat_map_loading")
-    random_sleep(3.6)
+    random_sleep(5)
 
 
 def combat_map_moving():
