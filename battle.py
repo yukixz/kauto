@@ -24,6 +24,13 @@ class Ship:
                 # TODO Repair item
         return damage
 
+    def IsDamaged(self):
+        if self.max_hp == -1:
+            return False
+        if self.now_hp * 4 > self.max_hp:
+            return False
+        return True
+
 
 ################################################################
 #
@@ -35,7 +42,7 @@ class Ship:
 #  TODO: Repair item
 #
 ################################################################
-def battle_analyze(battle_request, combined=0, debug=False):
+def battle_analyze(battle_request, combined=0, verbose=False):
     def kouku_attack(fleet, kouku):
         if 'api_fdam' in kouku:
             i = 0
@@ -70,13 +77,16 @@ def battle_analyze(battle_request, combined=0, debug=False):
             total_damage = 0
             for damage in hougeki['api_damage'][i]:
                 total_damage += math.floor(damage)
-            target = hougeki['api_df_list'][i][0] - 1
+            target = hougeki['api_df_list'][i][0]
             if target < 7:
                 fleet[target - 1].update_hp(total_damage)
             i += 1
 
     # Get battle log
-    battle_data = battle_request.body
+    if hasattr(battle_request, 'body'):
+        battle_data = battle_request.body
+    else:
+        battle_data = battle_request
 
     # Initialize the fleet's hit points
     main_fleet = []
@@ -157,26 +167,26 @@ def battle_analyze(battle_request, combined=0, debug=False):
             raigeki_attack(main_fleet, battle_data['api_raigeki'])
 
     # Debug: print analyze result
-    if debug:
-    	print("Last_battle:")
-    	print("\tmain_feet:")
-    	for i in range(0,6):
-    		print('\t', main_fleet[i].now_hp, " / ", main_fleet[i].max_hp)
-    	if combined > 0:
-    		print("\tmain_feet:")
-    		for i in range(0,6):
-    			print('\t', escort_fleet[i].now_hp, " / ", escort_fleet[i].max_hp)
+    if verbose:
+        print("Last_battle:")
+        print("\tmain_feet:")
+        for i in range(0,6):
+            print('\t', main_fleet[i].now_hp, " / ", main_fleet[i].max_hp)
+        if combined > 0:
+            print("\tmain_feet:")
+            for i in range(0,6):
+                print('\t', escort_fleet[i].now_hp, " / ", escort_fleet[i].max_hp)
 
     # Calculate the result of the battle
-    if main_fleet[0].now_hp * 4 < main_fleet[0].max_hp:
+    if main_fleet[0].IsDamaged():
+        print("battle_analyze: Flagship_Damaged")
         return BattleResult.Flagship_Damaged
     # if escort_fleet[0].now_hp < escort_fleet[0].max_hp * 0.2500001:
     #     return BattleResult.Flagship_Damaged
 
     for i in range(1, 6):
-        if main_fleet[i].now_hp * 4 < main_fleet[i].max_hp:
-            return BattleResult.Ship_Damaged
-        if escort_fleet[i].now_hp * 4 < escort_fleet[i].max_hp:
+        if main_fleet[i].IsDamaged() or escort_fleet[i].IsDamaged():
+            print("battle_analyze: Ship_Damaged")
             return BattleResult.Ship_Damaged
 
     return BattleResult.Safe
