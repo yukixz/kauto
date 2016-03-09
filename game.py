@@ -3,7 +3,7 @@
 import math
 
 from api_server import api_server
-from utils import Point, random_sleep, random_point, random_click
+from utils import Point, random_sleep, random_point, random_click, hotkey_refresh
 
 # Export api_server.wait to globals
 wait = api_server.wait
@@ -16,6 +16,15 @@ def set_foremost():
     random_sleep(0.4)
 
 
+def refresh_page():
+    print("refresh_page")
+    point = Point(755,495)
+    point.click()
+    random_sleep(0.4)
+    hotkey_refresh()
+    random_sleep(0.4)
+
+
 ################################################################
 #
 #   Port
@@ -23,6 +32,7 @@ def set_foremost():
 ################################################################
 
 
+# 母港：出撃
 def port_open_panel_sortie():
     print("port_open_panel_sortie")
     point = random_point(Point(161, 211), Point(238, 298))
@@ -33,7 +43,7 @@ def port_open_panel_sortie():
     random_sleep(1.2)   # 动画时间
 
 
-# 母港：出撃
+# 母港：遠征
 def port_open_panel_expedition():
     print("port_open_panel_expedition")
     random_click(Point(161, 211), Point(238, 298))
@@ -47,6 +57,14 @@ def port_open_panel_expedition():
 def port_open_panel_supply():
     print("port_open_panel_supply")
     point = random_point(Point(48, 211-22), Point(102, 274-22))
+    point.click()
+    random_sleep(1.2)
+
+
+# 母港：编成
+def port_open_panel_organize():
+    print("port_open_panel_supply")
+    point = random_point(Point(175, 115), Point(215, 155))
     point.click()
     random_sleep(1.2)
 
@@ -355,8 +373,9 @@ def combat_night():
 def combat_advance():
     print("combat_advance")
     combat_button_left()
-    wait("/kcsapi/api_req_map/next")
-    random_sleep(2)     # 动画时间
+    request = wait("/kcsapi/api_req_map/next")
+    next_spot = request.body["api_no"]
+    
 
 
 # 撤退

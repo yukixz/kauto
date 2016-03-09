@@ -50,17 +50,6 @@ def port_has_damaged_ship(request):
 #
 ################################################################
 
-def test_battle_analyze():
-    # Assure current fleet is not combined.
-    while True:
-        battle_request = api_server.wait(['/kcsapi/api_req_sortie/battle', 
-                                          '/kcsapi/api_req_sortie/airbattle', 
-                                          '/kcsapi/api_req_battle_midnight/battle', 
-                                          '/kcsapi/api_req_battle_midnight/sp_midnight', 
-                                          '/kcsapi/api_req_sortie/ld_airbattle'])
-        battle_analyze(battle_request, 0, True)
-
-
 def auto_1_1_single():
     game.set_foremost()
 
@@ -293,6 +282,23 @@ class AutoExpedition(BaseDFA):
         return self.port
 
 
+def current_mouse_position():
+    while True:
+        utils.mouse_position()
+        utils.random_sleep(1)
+
+
+def test_battle_analyze():
+    # Assure current fleet is not combined.
+    while True:
+        battle_request = api_server.wait(['/kcsapi/api_req_sortie/battle', 
+                                          '/kcsapi/api_req_sortie/airbattle', 
+                                          '/kcsapi/api_req_battle_midnight/battle', 
+                                          '/kcsapi/api_req_battle_midnight/sp_midnight', 
+                                          '/kcsapi/api_req_sortie/ld_airbattle'])
+        battle_analyze(battle_request, 0, True)
+
+
 
 ################################################################
 #
@@ -308,6 +314,7 @@ ACTIONS = {
     "d":    auto_destroy_ship,
     "r":    help_battleresult,
     "e":    AutoExpedition,
+    "mp":   current_mouse_position,
     "tba":  test_battle_analyze
 }
 

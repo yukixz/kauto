@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import math
 import os
+import platform
+import math
 import random
 import time
 from datetime import datetime
@@ -92,10 +93,12 @@ def random_sleep_until(min, max=None, floor=0):
 
 
 def hotkey_refresh():
-    if os.name == 'nt':
+    if os.name == "nt":
         pyautogui.press('f5')
-    else:
+    if os.name == "posix" and platform.system() == "Linux":
         pyautogui.hotkey('ctrl', 'r')
+    if os.name == "posix" and platform.system() == "Darwin":
+        pyautogui.hotkey('command', 'r')
 
 
 def hotkey_switch_panel(panel):
@@ -103,3 +106,11 @@ def hotkey_switch_panel(panel):
 
     if panel in available:
         pyautogui.hotkey('ctrl', panel)
+
+
+def mouse_position():
+    pos = pyautogui.position()
+    point = Point(pos[0] - config.base[0],
+                  pos[1] - config.base[1])
+    print("mouse at", point)
+    return point
