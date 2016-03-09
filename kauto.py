@@ -44,6 +44,20 @@ def port_has_damaged_ship(request):
     return False
 
 
+def advance_has_damaged_ship(request):
+    ''' Check whether there is damaged ship when advancing to next cell.
+    '''
+    ships = request.body['api_ship_data']
+    for ship in ships:
+        if any(['api_nowhp' not in ship,
+                'api_maxhp' not in ship,
+                4 * ship['api_nowhp'] <= ship['api_maxhp']
+                ]):
+            print("!! WARNING: Damaged ship found!")
+            return True
+    return False
+
+
 ################################################################
 #
 #  Automatic Script

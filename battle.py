@@ -25,7 +25,7 @@ class Ship:
         return damage
 
     def IsDamaged(self):
-        if self.max_hp == -1:
+        if self.max_hp == -1 and self.now_hp == -1:
             return False
         if self.now_hp * 4 > self.max_hp:
             return False

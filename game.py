@@ -22,7 +22,6 @@ def refresh_page():
     point.click()
     random_sleep(0.4)
     hotkey_refresh()
-    random_sleep(0.4)
 
 
 ################################################################
@@ -268,8 +267,9 @@ def sortie_confirm():
     point.click()
     random_sleep(0.6)
     point.click()
-    wait("/kcsapi/api_req_map/start")
+    request = wait("/kcsapi/api_req_map/start")
     random_sleep(1)     # 动画时间
+    return request
 
 
 ################################################################
@@ -373,8 +373,10 @@ def combat_night():
 def combat_advance():
     print("combat_advance")
     combat_button_left()
-    request = wait("/kcsapi/api_req_map/next")
-    next_spot = request.body["api_no"]
+
+    req_ship_deck = wait("/kcsapi/api_get_member/ship_deck")
+    req_next = wait("/kcsapi/api_req_map/next")
+    return (req_ship_deck, req_next)
     
 
 
@@ -424,7 +426,8 @@ def combat_map_moving():
 
 def combat_map_next():
     print("combat_map_next")
-    wait("/kcsapi/api_req_map/next")
+    request = wait("/kcsapi/api_req_map/next")
+    return request
 
 
 def combat_map_enemy_animation():
