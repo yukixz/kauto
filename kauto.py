@@ -7,6 +7,7 @@ from datetime import datetime
 
 import game
 import utils
+import battle
 from api_server import api_server
 from dfa import BaseDFA, BaseDFAStatus
 from utils import Point, random_point, random_click
@@ -94,6 +95,99 @@ def auto_1_1():
     for i in range(1, 4):
         print("!! auto 1-1 (%d)" % i)
         auto_1_1_single()
+
+
+class Auto23(BaseDFA):
+    def __init__(self):
+        self.cell_no = 0
+        self.path_dict = {
+            0:  self.port,
+            1:  self.path_compass_battle,
+            2:  self.path_compass_normal,
+            3:  self.path_compass_battle,
+            4:  self.path_compass_normal,
+            5:  self.path_battle,
+            6:  self.path_normal,
+            7:  self.path_normal,
+            8:  self.path_compass_final_normal,
+            9:  self.path_compass_final_battle,
+            10: self.path_compass_final_battle,
+            11: self.path_compass_final_battle,
+            12: self.path_normal
+        }
+
+    def start(self):
+        game.set_foremost()
+
+        request = game.dock_back_to_port()
+        if port_has_damaged_ship(request):
+            game.port_open_panel_organize()
+            return None
+
+        game.port_open_panel_sortie()
+        game.sortie_select(2, 3)
+        req_next = game.sortie_confirm()
+        self.cell_no = req_next.body["api_no"]
+        return self.path_dict.get(self.cell_no, None)
+
+    def path_battle(self):
+        game.combat_map_moving()
+        request = game.combat_to_midnight()
+        battle_result = battle.battle_analyze(request)
+
+        if battle_result == battle.BattleResult.Flagship_Damaged:
+            game.combat_retreat_flagship_damaged()
+            self.cell_no = 0
+            return self.port
+
+        if battle_result == battle.BattleResult.Ship_Damaged:
+            game.combat_retreat()
+            self.cell_no = 0
+            return self.port
+
+        if battle_result == battle.BattleResult.Safe:
+            req_ship_deck, req_next = game.combat_advance()
+            if advance_has_damaged_ship(req_ship_deck):
+                game.refresh_page()
+                raise Exception("battle_analyze_failure")
+
+            else:
+                self.cell_no = req_next.body["api_no"]
+                return self.path_dict.get(self.cell_no, None)
+
+    def path_compass_battle(self):
+        game.combat_compass()
+        return self.path_battle()
+
+    def path_compass_final_battle(self):
+        game.combat_compass()
+        game.combat_map_moving()
+        game.combat_to_midnight()
+        self.cell_no = 0
+        return self.port
+
+    def path_normal(self):
+        game.combat_map_moving()
+        req_next = game.combat_map_next()
+        self.cell_no = req_next.body["api_no"]
+        return self.path_dict.get(self.cell_no, None)
+
+    def path_compass_normal(self):
+        game.combat_compass()
+        return self.path_normal()
+
+    def path_compass_final_normal(self):
+        game.combat_compass()
+        game.combat_map_moving()
+        game.combat_retreat()
+        self.cell_no = 0
+        return self.port
+
+    def port(self):
+        game.port_open_panel_supply()
+        game.supply_current_fleet()
+        game.dock_open_panel_organize()
+        return None
 
 
 def auto_3_2():
