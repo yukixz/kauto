@@ -18,7 +18,7 @@ def set_foremost():
 
 def refresh_page():
     print("refresh_page")
-    point = Point(755,495)
+    point = Point(755, 495)
     point.click()
     random_sleep(0.4)
     hotkey_refresh()
@@ -335,6 +335,11 @@ def combat_formation_combined_battle():
     random_click(Point(602, 324-22), Point(728, 345-22))
 
 
+def combat_button_retreat_flagship_damaged():
+    point = random_point(Point(535, 220), Point(605, 260))
+    point.click()
+
+
 def combat_button_left():
     point = random_point(Point(257, 247-22), Point(327, 289-22))
     point.click()
@@ -376,9 +381,8 @@ def combat_advance():
 
     req_ship_deck = wait("/kcsapi/api_get_member/ship_deck")
     req_next = wait("/kcsapi/api_req_map/next")
-    return (req_ship_deck, req_next)
+    return req_ship_deck, req_next
     
-
 
 # 撤退
 def combat_retreat():
@@ -390,13 +394,20 @@ def combat_retreat():
     return request
 
 
+# 撤退，旗艦大破
+def combat_retreat_flagship_damaged():
+    print("combat_retreat_flagship_damaged")
+    combat_button_retreat_flagship_damaged()
+    request = wait("/kcsapi/api_port/port")
+    wait("/kcsapi/api_get_member/useitem")
+    random_sleep(1.2)   # 动画时间
+    return request
+
+
 # 战斗结果
-def combat_result():
+def combat_result_operation(request):
     print("combat_result")
     point = random_point(Point(500, 320), Point(750, 420))
-    request = wait(['/kcsapi/api_req_sortie/battleresult',
-                    '/kcsapi/api_req_combined_battle/battleresult',
-                    '/kcsapi/api_req_practice/battle_result'])
     random_sleep(7.6)
     point.click()
     if "api_get_ship_exp" in request.body:
@@ -412,6 +423,34 @@ def combat_result():
         random_sleep(7.6)   # 获得舰船
         point.click()
     random_sleep(1)
+
+
+def combat_result():
+    request = wait(['/kcsapi/api_req_sortie/battleresult',
+                    '/kcsapi/api_req_combined_battle/battleresult',
+                    '/kcsapi/api_req_practice/battle_result'])
+    combat_result_operation(request)
+
+
+def combat_to_midnight():
+    print("combat_daytime")
+    req_battle = wait('api_req_sortie/battle')
+    combat_move_to_button_left()
+    request = wait(['/kcsapi/api_req_sortie/battleresult',
+                    '/kcsapi/api_req_combined_battle/battleresult',
+                    '/kcsapi/api_req_practice/battle_result',
+                    '/kcsapi/api_req_battle_midnight/battle'])
+    if request.path == '/kcsapi/api_req_battle_midnight/battle':
+        print("combat_night")
+        req_battle = request
+        combat_result()
+    elif request.path in ['/kcsapi/api_req_sortie/battleresult',
+                          '/kcsapi/api_req_combined_battle/battleresult',
+                          '/kcsapi/api_req_practice/battle_result']:
+        combat_result_operation(request)
+    else:
+        raise NotImplementedError()
+    return req_battle
 
 
 def combat_map_loading():
