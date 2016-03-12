@@ -179,7 +179,8 @@ def factory_destroy_do_destory():
     point = random_point(Point(641, 420), Point(743, 452))
     point.click()
     random_sleep(4)
-    wait("/kcsapi/api_req_kousyou/destroyship")
+    wait(("/kcsapi/api_req_kousyou/destroyship",
+          "/kcsapi/api_req_kousyou/destroyitem2"))
 
 
 ################################################################

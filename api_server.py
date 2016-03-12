@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 
 import json
+import math
 import sys
 import threading
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import config
+
+
+REQUESTS = []
+REQUESTS_LOCK = threading.Lock()
 
 
 class Request():
@@ -34,10 +39,10 @@ class APIServerHandler(BaseHTTPRequestHandler):
         length = int(self.headers['Content-Length'])
         body = self.rfile.read(length).decode('utf-8')
         try:
-            APIServer.REQUESTS_LOCK.acquire()
-            APIServer.REQUESTS.append(Request(body))
+            REQUESTS_LOCK.acquire()
+            REQUESTS.append(Request(body))
         finally:
-            APIServer.REQUESTS_LOCK.release()
+            REQUESTS_LOCK.release()
         self.send_response(200)
         self.end_headers()
 
@@ -51,8 +56,7 @@ class APIServerHandler(BaseHTTPRequestHandler):
 
 
 class APIServer():
-    REQUESTS = []
-    REQUESTS_LOCK = threading.Lock()
+    SLEEP_INTERVAL = 0.1
 
     def __init__(self):
         self.httpd = HTTPServer(config.host, APIServerHandler)
@@ -61,38 +65,44 @@ class APIServer():
         self.threaded_httpd.start()
         print("Threaded API server listening on %s:%d" % config.host)
 
-    def wait(self, paths):
+    def wait(self, path, timeout=86400, keep=False):
         ''' Wait for specified API request.
-            User can use Control-C to break this wait
-            @param  API path
-            @return Request object
         '''
-        if type(paths) not in [list, tuple]:
-            paths = (paths,)
-        print("wait: %s" % paths[0])
+        if type(path) in [list, tuple]:
+            paths = path
+        else:
+            paths = (path, )
+        timeout_limit = math.ceil(timeout / self.SLEEP_INTERVAL)
+        timeout_count = 1
 
-        waiting = True
-        request = None
-        while waiting:
-            if len(APIServer.REQUESTS) > 0:
-                try:
-                    APIServer.REQUESTS_LOCK.acquire()
-                    request = APIServer.REQUESTS.pop(0)
-                finally:
-                    APIServer.REQUESTS_LOCK.release()
+        print("wait: %s" % paths[0])
+        while True:
+            if len(REQUESTS) == 0:
+                if timeout_count > timeout_limit:
+                    return None
+                timeout_count += 1
+                time.sleep(self.SLEEP_INTERVAL)
+                continue
+            try:
+                REQUESTS_LOCK.acquire()
+                request = REQUESTS.pop(0)
                 print(request)
                 if request.path in paths:
-                    waiting = False
-            else:
-                time.sleep(0.2)
-        return request
+                    if keep:
+                        REQUESTS.insert(0, request)
+                    return request
+            finally:
+                REQUESTS_LOCK.release()
+
+    def flush(self):
+        try:
+            REQUESTS_LOCK.acquire()
+            del REQUESTS[:]
+        finally:
+            REQUESTS_LOCK.release()
 
     def empty(self):
-        try:
-            APIServer.REQUESTS_LOCK.acquire()
-            del APIServer.REQUESTS[:]
-        finally:
-            APIServer.REQUESTS_LOCK.release()
+        return self.flush()
 
 
 api_server = APIServer()
