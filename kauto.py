@@ -274,10 +274,10 @@ def help_battleresult():
         point.moveTo()
 
 
-def auto_destroy_ship():
+def auto_destroy():
     game.set_foremost()
     while True:
-        print("!! auto destroy ship")
+        print("!! auto destroy")
         game.factory_destroy_select_first()
         game.factory_destroy_do_destory()
         utils.random_sleep(0.4)
@@ -428,7 +428,7 @@ ACTIONS = {
     "23":   Auto23,
     "32":   auto_3_2,
     "54":   help_5_4,
-    "d":    auto_destroy_ship,
+    "d":    auto_destroy,
     "r":    help_battleresult,
     "e":    AutoExpedition,
     "mp":   current_mouse_position,
