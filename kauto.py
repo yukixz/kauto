@@ -127,6 +127,9 @@ class Auto23(BaseDFA):
         game.port_open_panel_sortie()
         game.sortie_select(2, 3)
         req_next = game.sortie_confirm()
+        game.combat_map_loading()
+
+        game.poi_switch_panel_prophet()
         self.cell_no = req_next.body["api_no"]
         return self.path_dict.get(self.cell_no, None)
 
@@ -163,6 +166,7 @@ class Auto23(BaseDFA):
         game.combat_compass()
         game.combat_map_moving()
         game.combat_to_midnight()
+        api_server.wait("/kcsapi/api_get_member/useitem")
         self.cell_no = 0
         return self.port
 
@@ -179,11 +183,15 @@ class Auto23(BaseDFA):
     def path_compass_final_normal(self):
         game.combat_compass()
         game.combat_map_moving()
+        utils.random_sleep(2)  #Network Delay
         game.combat_retreat()
         self.cell_no = 0
         return self.port
 
     def port(self):
+        game.poi_switch_panel_main()
+
+        utils.random_sleep(2)  #Network Delay
         game.port_open_panel_supply()
         game.supply_current_fleet()
         game.dock_open_panel_organize()
@@ -417,6 +425,7 @@ def test_battle_analyze():
 ACTIONS = {
     "11":   auto_1_1,
     "11s":  auto_1_1_single,
+    "23":   Auto23,
     "32":   auto_3_2,
     "54":   help_5_4,
     "d":    auto_destroy_ship,

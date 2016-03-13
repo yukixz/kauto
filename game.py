@@ -3,7 +3,7 @@
 import math
 
 from api_server import api_server
-from utils import Point, random_sleep, random_point, random_click, hotkey_refresh
+from utils import Point, random_sleep, random_point, random_click, hotkey_refresh, hotkey_switch_panel
 
 # Export api_server.wait to globals
 wait = api_server.wait
@@ -227,7 +227,8 @@ def sortie_select_area_1():
 
 # 出击：2-*
 def sortie_select_area_2():
-    raise NotImplementedError("sortie_select_area_2 is not implemented!")
+    point = random_point(Point(215, 425), Point(250, 458))
+    point.click()
 
 
 # 出击：3-*
@@ -282,6 +283,7 @@ def sortie_confirm():
 # 战斗：罗盘娘
 def combat_compass():
     print("combat_compass")
+    random_sleep(1.6)   # 地图加载
     point = random_point(Point(500, 400-22), Point(750, 450-22))
     point.click()
     random_sleep(4.2)   # 动画时间
@@ -434,7 +436,7 @@ def combat_result():
 
 def combat_to_midnight():
     print("combat_daytime")
-    req_battle = wait('api_req_sortie/battle')
+    req_battle = wait('/kcsapi/api_req_sortie/battle')
     combat_move_to_button_left()
     request = wait(['/kcsapi/api_req_sortie/battleresult',
                     '/kcsapi/api_req_combined_battle/battleresult',
@@ -584,3 +586,16 @@ def expedition_confirm_2():
     request = wait("/kcsapi/api_get_member/deck")
     random_sleep(5)
     return request
+
+
+################################################################
+#
+#   POI Operation
+#
+################################################################
+def poi_switch_panel_main():
+    hotkey_switch_panel('1')
+
+
+def poi_switch_panel_prophet():
+    hotkey_switch_panel('3')
