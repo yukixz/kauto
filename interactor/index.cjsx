@@ -15,11 +15,5 @@ window.addEventListener 'game.response', (e) ->
     return if err.code in ['ECONNREFUSED']
     console.error "kauto:", err
 
-# Set windows bounds
-w = remote.getCurrentWindow()
-b = w.getBounds()
-b.x = b.y = 0
-w.setBounds(b)
-
 module.exports =
   show: false
