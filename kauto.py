@@ -7,9 +7,11 @@ from datetime import datetime
 
 import game
 import utils
+import battle
 from api_server import api_server
 from dfa import BaseDFA, BaseDFAStatus
 from utils import Point, random_point, random_click
+from battle import battle_analyze, battle_timer
 
 
 ################################################################
@@ -34,6 +36,20 @@ def port_has_damaged_ship(request):
                 break
         if ship is None:
             raise Exception("Cannot find ship with id: %d" % ship_id)
+        if any(['api_nowhp' not in ship,
+                'api_maxhp' not in ship,
+                4 * ship['api_nowhp'] <= ship['api_maxhp']
+                ]):
+            print("!! WARNING: Damaged ship found!")
+            return True
+    return False
+
+
+def advance_has_damaged_ship(request):
+    ''' Check whether there is damaged ship when advancing to next cell.
+    '''
+    ships = request.body['api_ship_data']
+    for ship in ships:
         if any(['api_nowhp' not in ship,
                 'api_maxhp' not in ship,
                 4 * ship['api_nowhp'] <= ship['api_maxhp']
@@ -79,6 +95,107 @@ def auto_1_1():
     for i in range(1, 4):
         print("!! auto 1-1 (%d)" % i)
         auto_1_1_single()
+
+
+class Auto23(BaseDFA):
+    def __init__(self):
+        self.cell_no = 0
+        self.path_dict = {
+            0:  self.port,
+            1:  self.path_compass_battle,
+            2:  self.path_compass_normal,
+            3:  self.path_compass_battle,
+            4:  self.path_compass_normal,
+            5:  self.path_battle,
+            6:  self.path_normal,
+            7:  self.path_normal,
+            8:  self.path_compass_final_normal,
+            9:  self.path_compass_final_battle,
+            10: self.path_compass_final_battle,
+            11: self.path_compass_final_battle,
+            12: self.path_normal
+        }
+
+    def start(self):
+        game.set_foremost()
+
+        request = game.dock_back_to_port()
+        if port_has_damaged_ship(request):
+            game.port_open_panel_organize()
+            return None
+
+        game.port_open_panel_sortie()
+        game.sortie_select(2, 3)
+        req_next = game.sortie_confirm()
+        game.combat_map_loading()
+
+        game.poi_switch_panel_prophet()
+        self.cell_no = req_next.body["api_no"]
+        return self.path_dict.get(self.cell_no, None)
+
+    def path_battle(self):
+        game.combat_map_moving()
+        request = game.combat_to_midnight()
+        battle_result = battle.battle_analyze(request)
+
+        if battle_result == battle.BattleResult.Flagship_Damaged:
+            game.combat_retreat_flagship_damaged()
+            self.cell_no = 0
+            return self.port
+
+        if battle_result == battle.BattleResult.Ship_Damaged:
+            game.combat_retreat()
+            self.cell_no = 0
+            return self.port
+
+        if battle_result == battle.BattleResult.Safe:
+            req_ship_deck, req_next = game.combat_advance()
+            if advance_has_damaged_ship(req_ship_deck):
+                game.refresh_page()
+                raise Exception("battle_analyze_failure")
+
+            else:
+                self.cell_no = req_next.body["api_no"]
+                return self.path_dict.get(self.cell_no, None)
+
+    def path_compass_battle(self):
+        game.combat_compass()
+        return self.path_battle()
+
+    def path_compass_final_battle(self):
+        game.combat_compass()
+        game.combat_map_moving()
+        game.combat_to_midnight()
+        api_server.wait("/kcsapi/api_get_member/useitem")
+        self.cell_no = 0
+        return self.port
+
+    def path_normal(self):
+        game.combat_map_moving()
+        req_next = game.combat_map_next()
+        self.cell_no = req_next.body["api_no"]
+        return self.path_dict.get(self.cell_no, None)
+
+    def path_compass_normal(self):
+        game.combat_compass()
+        return self.path_normal()
+
+    def path_compass_final_normal(self):
+        game.combat_compass()
+        game.combat_map_moving()
+        utils.random_sleep(2)  #Network Delay
+        game.combat_retreat()
+        self.cell_no = 0
+        return self.port
+
+    def port(self):
+        game.poi_switch_panel_main()
+
+        utils.random_sleep(2)  #Network Delay
+        game.port_open_panel_supply()
+        game.supply_current_fleet()
+        game.dock_open_panel_organize()
+        return None
 
 
 def auto_3_2():
@@ -281,6 +398,24 @@ class AutoExpedition(BaseDFA):
         return self.port
 
 
+def current_mouse_position():
+    while True:
+        utils.mouse_position()
+        utils.random_sleep(1)
+
+
+def test_battle_analyze():
+    # Assure current fleet is not combined.
+    while True:
+        battle_request = api_server.wait(['/kcsapi/api_req_sortie/battle', 
+                                          '/kcsapi/api_req_sortie/airbattle', 
+                                          '/kcsapi/api_req_battle_midnight/battle', 
+                                          '/kcsapi/api_req_battle_midnight/sp_midnight', 
+                                          '/kcsapi/api_req_sortie/ld_airbattle'])
+        battle_analyze(battle_request, 0, True)
+
+
+
 ################################################################
 #
 #  Script control
@@ -290,11 +425,14 @@ class AutoExpedition(BaseDFA):
 ACTIONS = {
     "11":   auto_1_1,
     "11s":  auto_1_1_single,
+    "23":   Auto23,
     "32":   auto_3_2,
     "54":   help_5_4,
     "d":    auto_destroy,
     "r":    help_battleresult,
     "e":    AutoExpedition,
+    "mp":   current_mouse_position,
+    "tba":  test_battle_analyze
 }
 
 
