@@ -127,9 +127,9 @@ class Auto23(BaseDFA):
         game.port_open_panel_sortie()
         game.sortie_select(2, 3)
         req_next = game.sortie_confirm()
+        game.poi_switch_panel_prophet()
         game.combat_map_loading()
 
-        game.poi_switch_panel_prophet()
         self.cell_no = req_next.body["api_no"]
         return self.path_dict.get(self.cell_no, None)
 
@@ -191,10 +191,9 @@ class Auto23(BaseDFA):
     def port(self):
         game.poi_switch_panel_main()
 
-        utils.random_sleep(2)  #Network Delay
+        utils.random_sleep(1)  #Network Delay
         game.port_open_panel_supply()
         game.supply_current_fleet()
-        game.dock_open_panel_organize()
         return None
 
 
