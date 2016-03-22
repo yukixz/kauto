@@ -3,15 +3,13 @@
 import sys
 import time
 import traceback
-from datetime import datetime
 
 import game
 import utils
 import battle
 from api_server import api_server
 from dfa import BaseDFA, BaseDFAStatus
-from utils import Point, random_point, random_click
-from battle import battle_analyze, battle_timer
+from utils import Point
 
 
 ################################################################
@@ -129,13 +127,16 @@ class Auto23(BaseDFA):
         req_next = game.sortie_confirm()
         game.combat_map_loading()
 
-        game.poi_switch_panel_prophet()
         self.cell_no = req_next.body["api_no"]
         return self.path_dict.get(self.cell_no, None)
 
+    def should_night_battle(self):
+        return self.cell_no in (3, 9, 10)
+
     def path_battle(self):
         game.combat_map_moving()
-        request = game.combat_to_midnight()
+        request = game.combat_battle(self.should_night_battle())
+        game.combat_result()
         battle_result = battle.battle_analyze(request)
 
         if battle_result == battle.BattleResult.Flagship_Damaged:
@@ -151,7 +152,7 @@ class Auto23(BaseDFA):
         if battle_result == battle.BattleResult.Safe:
             req_ship_deck, req_next = game.combat_advance()
             if advance_has_damaged_ship(req_ship_deck):
-                game.refresh_page()
+                game.poi_refresh_page()
                 raise Exception("battle_analyze_failure")
 
             else:
@@ -165,7 +166,8 @@ class Auto23(BaseDFA):
     def path_compass_final_battle(self):
         game.combat_compass()
         game.combat_map_moving()
-        game.combat_to_midnight()
+        game.combat_battle(self.should_night_battle())
+        game.combat_result()
         api_server.wait("/kcsapi/api_get_member/useitem")
         self.cell_no = 0
         return self.port
@@ -183,18 +185,15 @@ class Auto23(BaseDFA):
     def path_compass_final_normal(self):
         game.combat_compass()
         game.combat_map_moving()
-        utils.random_sleep(2)  #Network Delay
-        game.combat_retreat()
+        utils.random_sleep(2)   # 动画时间
+        game.combat_retreat()   # TODO: Write a new method
         self.cell_no = 0
         return self.port
 
     def port(self):
-        game.poi_switch_panel_main()
-
-        utils.random_sleep(2)  #Network Delay
+        utils.random_sleep(2)  # 动画时间
         game.port_open_panel_supply()
         game.supply_current_fleet()
-        game.dock_open_panel_organize()
         return None
 
 
@@ -401,19 +400,19 @@ class AutoExpedition(BaseDFA):
 def current_mouse_position():
     while True:
         utils.mouse_position()
-        utils.random_sleep(1)
+        time.sleep(1)
 
 
 def test_battle_analyze():
     # Assure current fleet is not combined.
     while True:
-        battle_request = api_server.wait(['/kcsapi/api_req_sortie/battle', 
-                                          '/kcsapi/api_req_sortie/airbattle', 
-                                          '/kcsapi/api_req_battle_midnight/battle', 
-                                          '/kcsapi/api_req_battle_midnight/sp_midnight', 
-                                          '/kcsapi/api_req_sortie/ld_airbattle'])
-        battle_analyze(battle_request, 0, True)
-
+        request = api_server.wait([
+            '/kcsapi/api_req_sortie/battle',
+            '/kcsapi/api_req_sortie/airbattle',
+            '/kcsapi/api_req_battle_midnight/battle',
+            '/kcsapi/api_req_battle_midnight/sp_midnight',
+            '/kcsapi/api_req_sortie/ld_airbattle'])
+        battle.battle_analyze(request, 0, True)
 
 
 ################################################################

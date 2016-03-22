@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import math
+import platform
+import pyautogui
 
+import utils
 from api_server import api_server
-from utils import Point, random_sleep, random_point, random_click, hotkey_refresh, hotkey_switch_panel
+from utils import Point, random_sleep, random_point, random_click
 
 # Export api_server.wait to globals
 wait = api_server.wait
@@ -14,14 +17,6 @@ def set_foremost():
     point = random_point(Point(500, 10), Point(500, 10))
     point.click()
     random_sleep(0.4)
-
-
-def refresh_page():
-    print("refresh_page")
-    point = Point(755, 495)
-    point.click()
-    random_sleep(0.4)
-    hotkey_refresh()
 
 
 ################################################################
@@ -284,7 +279,7 @@ def sortie_confirm():
 # 战斗：罗盘娘
 def combat_compass():
     print("combat_compass")
-    random_sleep(1.6)   # 地图加载
+    random_sleep(1)
     point = random_point(Point(500, 400-22), Point(750, 450-22))
     point.click()
     random_sleep(4.2)   # 动画时间
@@ -381,11 +376,11 @@ def combat_night():
 def combat_advance():
     print("combat_advance")
     combat_button_left()
-
     req_ship_deck = wait("/kcsapi/api_get_member/ship_deck")
     req_next = wait("/kcsapi/api_req_map/next")
+    random_sleep(1)     # 动画时间
     return req_ship_deck, req_next
-    
+
 
 # 撤退
 def combat_retreat():
@@ -407,9 +402,11 @@ def combat_retreat_flagship_damaged():
     return request
 
 
-# 战斗结果
-def combat_result_operation(request):
+def combat_result():
     print("combat_result")
+    request = wait(['/kcsapi/api_req_sortie/battleresult',
+                    '/kcsapi/api_req_combined_battle/battleresult',
+                    '/kcsapi/api_req_practice/battle_result'])
     point = random_point(Point(500, 320), Point(750, 420))
     random_sleep(7.6)
     point.click()
@@ -426,34 +423,41 @@ def combat_result_operation(request):
         random_sleep(7.6)   # 获得舰船
         point.click()
     random_sleep(1)
+    return request
 
 
-def combat_result():
-    request = wait(['/kcsapi/api_req_sortie/battleresult',
-                    '/kcsapi/api_req_combined_battle/battleresult',
-                    '/kcsapi/api_req_practice/battle_result'])
-    combat_result_operation(request)
-
-
-def combat_to_midnight():
-    print("combat_daytime")
-    req_battle = wait('/kcsapi/api_req_sortie/battle')
-    combat_move_to_button_left()
-    request = wait(['/kcsapi/api_req_sortie/battleresult',
-                    '/kcsapi/api_req_combined_battle/battleresult',
-                    '/kcsapi/api_req_practice/battle_result',
-                    '/kcsapi/api_req_battle_midnight/battle'])
-    if request.path == '/kcsapi/api_req_battle_midnight/battle':
-        print("combat_night")
-        req_battle = request
-        combat_result()
-    elif request.path in ['/kcsapi/api_req_sortie/battleresult',
-                          '/kcsapi/api_req_combined_battle/battleresult',
-                          '/kcsapi/api_req_practice/battle_result']:
-        combat_result_operation(request)
+# Battle of normal fleet and combined fleet.
+# No pratice battle.
+def combat_battle(night=False):
+    print("combat_battle")
+    day_battle = wait('/kcsapi/api_req_sortie/battle')
+    random_sleep(30)
+    if night:
+        while True:
+            combat_night()
+            night_battle = wait([
+                '/kcsapi/api_req_battle_midnight/battle',
+                '/kcsapi/api_req_combined_battle/midnight_battle'
+                ], timeout=0)
+            if night_battle:
+                wait([
+                    '/kcsapi/api_req_sortie/battleresult',
+                    '/kcsapi/api_req_combined_battle/battleresult'
+                    ], keep=True)
+                return night_battle
+            else:
+                random_sleep(8)
     else:
-        raise NotImplementedError()
-    return req_battle
+        while True:
+            combat_no_night()
+            request = wait([
+                '/kcsapi/api_req_sortie/battleresult',
+                '/kcsapi/api_req_combined_battle/battleresult'
+                ], timeout=0, keep=True)
+            if request:
+                return day_battle
+            else:
+                random_sleep(8)
 
 
 def combat_map_loading():
@@ -594,9 +598,25 @@ def expedition_confirm_2():
 #   POI Operation
 #
 ################################################################
+
+def poi_refresh_page():
+    print("poi_refresh_page")
+    point = Point(755, 495)
+    point.click()
+    random_sleep(0.4)
+
+    system = platform.system()
+    if system == "Windows":
+        pyautogui.press('f5')
+    if system == "Linux":
+        pyautogui.hotkey('ctrl', 'r')
+    if system == "Darwin":
+        pyautogui.hotkey('command', 'r')
+
+
 def poi_switch_panel_main():
-    hotkey_switch_panel('1')
+    pyautogui.hotkey('ctrl', '1')
 
 
 def poi_switch_panel_prophet():
-    hotkey_switch_panel('3')
+    pyautogui.hotkey('ctrl', '3')

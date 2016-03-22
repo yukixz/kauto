@@ -2,7 +2,6 @@
 
 import json
 import math
-import sys
 import threading
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
