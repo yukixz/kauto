@@ -73,7 +73,6 @@ def random_sleep(min, max=None):
     if max is None:
         max = min * 1.1
     seconds = random.uniform(min, max)
-    # print("sleep:", seconds)
     time.sleep(seconds)
 
 
@@ -90,22 +89,6 @@ def random_sleep_until(min, max=None, floor=0):
     end_dt = datetime.fromtimestamp(end)
     print("sleep until:", end_dt.strftime("%I:%M:%S %p"))
     time.sleep(seconds)
-
-
-def hotkey_refresh():
-    if os.name == "nt":
-        pyautogui.press('f5')
-    if os.name == "posix" and platform.system() == "Linux":
-        pyautogui.hotkey('ctrl', 'r')
-    if os.name == "posix" and platform.system() == "Darwin":
-        pyautogui.hotkey('command', 'r')
-
-
-def hotkey_switch_panel(panel):
-    available = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-
-    if panel in available:
-        pyautogui.hotkey('ctrl', panel)
 
 
 def mouse_position():
