@@ -96,7 +96,14 @@ def auto_1_1():
 
 
 class Auto23(BaseDFA):
-    def __init__(self):
+    MODE_NAME = {0: "不入夜",
+                 1: "补给/轻航点入夜",
+                 2: "BOSS点入夜",
+                 3: "补给/轻航/BOSS点入夜"}
+
+    def __init__(self, mode='0'):
+        self.mode = int(mode)
+        print("Mode ", self.mode, ": ", Auto23.MODE_NAME[self.mode])
         self.cell_no = 0
         self.path_dict = {
             0:  self.port,
@@ -132,7 +139,14 @@ class Auto23(BaseDFA):
         return self.path_dict.get(self.cell_no, None)
 
     def should_night_battle(self):
-        return self.cell_no in (3, 9, 10)
+        if self.mode == 0:
+            return False
+        if self.mode == 1:
+            return self.cell_no in (3, 9, 10)
+        if self.mode == 2:
+            return self.cell_no in (11,)
+        if self.mode == 3:
+            return self.cell_no in (3, 9, 10, 11)
 
     def path_battle(self):
         game.combat_map_moving()
