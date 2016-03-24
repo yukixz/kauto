@@ -431,6 +431,8 @@ def combat_result():
 def combat_battle(night=False):
     print("combat_battle")
     day_battle = wait('/kcsapi/api_req_sortie/battle')
+    if day_battle.body['api_midnight_flag'] == 0:
+        return day_battle
     random_sleep(30)
     if night:
         while True:
