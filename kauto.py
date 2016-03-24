@@ -96,7 +96,14 @@ def auto_1_1():
 
 
 class Auto23(BaseDFA):
-    def __init__(self):
+    MODE_NAME = {0: "不入夜",
+                 1: "补给/轻航点入夜",
+                 2: "BOSS点入夜",
+                 3: "补给/轻航/BOSS点入夜"}
+
+    def __init__(self, mode='0'):
+        self.mode = int(mode)
+        print("Mode ", self.mode, ": ", Auto23.MODE_NAME[self.mode])
         self.cell_no = 0
         self.path_dict = {
             0:  self.port,
@@ -125,13 +132,21 @@ class Auto23(BaseDFA):
         game.port_open_panel_sortie()
         game.sortie_select(2, 3)
         req_next = game.sortie_confirm()
+        game.poi_switch_panel_prophet()
         game.combat_map_loading()
 
         self.cell_no = req_next.body["api_no"]
         return self.path_dict.get(self.cell_no, None)
 
     def should_night_battle(self):
-        return self.cell_no in (3, 9, 10)
+        if self.mode == 0:
+            return False
+        if self.mode == 1:
+            return self.cell_no in (3, 9, 10)
+        if self.mode == 2:
+            return self.cell_no in (11,)
+        if self.mode == 3:
+            return self.cell_no in (3, 9, 10, 11)
 
     def path_battle(self):
         game.combat_map_moving()
@@ -191,6 +206,8 @@ class Auto23(BaseDFA):
         return self.port
 
     def port(self):
+        game.poi_switch_panel_main()
+
         utils.random_sleep(2)  # 动画时间
         game.port_open_panel_supply()
         game.supply_current_fleet()
