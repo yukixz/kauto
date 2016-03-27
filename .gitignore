@@ -66,3 +66,6 @@ target/
 
 # OX S Folder Attribute
 .DS-Store
+
+# Configuration file
+config.py
