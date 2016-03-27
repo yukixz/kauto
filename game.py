@@ -280,7 +280,7 @@ def sortie_confirm():
 # 战斗：罗盘娘
 def combat_compass():
     print("combat_compass")
-    random_sleep(1)
+    random_sleep(1.6)
     point = random_point(Point(500, 400-22), Point(750, 450-22))
     point.click()
     random_sleep(4.2)   # 动画时间
@@ -474,7 +474,7 @@ def combat_map_loading():
 
 def combat_map_moving():
     print("combat_map_moving")
-    random_sleep(6)
+    random_sleep(7)
 
 
 def combat_map_next():
