@@ -286,7 +286,7 @@ def combat_compass():
     random_sleep(4.2)   # 动画时间
 
 
-# 陣形：複縦陣
+# 陣形：単縦陣
 def combat_formation_line():
     print("combat_formation_line")
     point = random_point(Point(403, 200-22), Point(492, 216-22))
