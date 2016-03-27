@@ -214,7 +214,7 @@ class Auto23(BaseDFA):
         return None
 
 
-def auto_4_2():
+def auto_3_2():
     game.set_foremost()
 
     while True:
