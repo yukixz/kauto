@@ -235,7 +235,8 @@ def sortie_select_area_3():
 
 # 出击：4-*
 def sortie_select_area_4():
-    raise NotImplementedError("sortie_select_area_4 is not implemented!")
+    point = random_point(Point(355, 425), Point(390, 448))
+    point.click()
 
 
 # 出击：EX-*
