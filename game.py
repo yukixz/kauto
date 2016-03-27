@@ -235,7 +235,8 @@ def sortie_select_area_3():
 
 # 出击：4-*
 def sortie_select_area_4():
-    raise NotImplementedError("sortie_select_area_4 is not implemented!")
+    point = random_point(Point(355, 425), Point(390, 448))
+    point.click()
 
 
 # 出击：EX-*
@@ -279,13 +280,13 @@ def sortie_confirm():
 # 战斗：罗盘娘
 def combat_compass():
     print("combat_compass")
-    random_sleep(1)
+    random_sleep(1.6)
     point = random_point(Point(500, 400-22), Point(750, 450-22))
     point.click()
     random_sleep(4.2)   # 动画时间
 
 
-# 陣形：複縦陣
+# 陣形：単縦陣
 def combat_formation_line():
     print("combat_formation_line")
     point = random_point(Point(403, 200-22), Point(492, 216-22))
@@ -473,7 +474,7 @@ def combat_map_loading():
 
 def combat_map_moving():
     print("combat_map_moving")
-    random_sleep(6)
+    random_sleep(7)
 
 
 def combat_map_next():

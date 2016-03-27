@@ -242,7 +242,7 @@ def auto_4_2():
             break
 
 
-class Auto_3_2(BaseDFA):
+class Auto42(BaseDFA):
     # D --9 C --6 B --3 A
     #  \   12         10 \
     #  13 /           /   2
@@ -250,7 +250,115 @@ class Auto_3_2(BaseDFA):
     #   8 \           \   1
     #  /   \           5 /
     # I     --7 G ----4 F
-    pass
+
+    def __init__(self, mode='0'):
+        self.cell_no = 0
+        self.path_dict = {
+            0:  self.port,
+            1:  self.path_compass_battle,
+            2:  self.path_compass_battle,
+            3:  self.path_compass_normal,
+            4:  self.path_compass_normal,
+            5:  self.path_compass_normal,
+            6:  self.path_battle,
+            7:  self.path_battle,
+            8:  self.path_compass_final_battle,
+            9:  self.path_compass_final_battle,
+            10: self.path_compass_normal,
+            11: self.path_battle,
+            12: self.path_compass_battle,
+            13: self.path_compass_final_battle
+        }
+
+    def start(self):
+        game.set_foremost()
+
+        request = game.dock_back_to_port()
+        if port_has_damaged_ship(request):
+            game.port_open_panel_organize()
+            return None
+
+        game.port_open_panel_sortie()
+        game.sortie_select(4, 2)
+        req_next = game.sortie_confirm()
+        game.poi_switch_panel_prophet()
+        game.combat_map_loading()
+
+        self.cell_no = req_next.body["api_no"]
+        return self.path_dict.get(self.cell_no, None)
+
+    def should_night_battle(self):
+        if self.cell_no in (8, 9, 13):
+            return True
+        else:
+            return False
+
+    def path_battle(self):
+        game.combat_map_moving()
+        game.combat_formation_line()
+        request = game.combat_battle(self.should_night_battle())
+        game.combat_result()
+        battle_result = battle.battle_analyze(request)
+
+        if battle_result == battle.BattleResult.Flagship_Damaged:
+            game.combat_retreat_flagship_damaged()
+            self.cell_no = 0
+            return self.port
+
+        if battle_result == battle.BattleResult.Ship_Damaged:
+            game.combat_retreat()
+            self.cell_no = 0
+            return self.port
+
+        if battle_result == battle.BattleResult.Safe:
+            req_ship_deck, req_next = game.combat_advance()
+            if advance_has_damaged_ship(req_ship_deck):
+                game.poi_refresh_page()
+                raise Exception("battle_analyze_failure")
+
+            else:
+                self.cell_no = req_next.body["api_no"]
+                return self.path_dict.get(self.cell_no, None)
+
+    def path_compass_battle(self):
+        game.combat_compass()
+        return self.path_battle()
+
+    def path_compass_final_battle(self):
+        game.combat_compass()
+        game.combat_map_moving()
+        game.combat_formation_line()
+        game.combat_battle(self.should_night_battle())
+        game.combat_result()
+        api_server.wait("/kcsapi/api_get_member/useitem")
+        self.cell_no = 0
+        return self.port
+
+    def path_normal(self):
+        game.combat_map_moving()
+        req_next = game.combat_map_next()
+        self.cell_no = req_next.body["api_no"]
+        return self.path_dict.get(self.cell_no, None)
+
+    def path_compass_normal(self):
+        game.combat_compass()
+        return self.path_normal()
+
+    def path_compass_final_normal(self):
+        game.combat_compass()
+        game.combat_map_moving()
+        utils.random_sleep(2)   # 动画时间
+        game.combat_retreat()   # TODO: Write a new method
+        self.cell_no = 0
+        return self.port
+
+    def port(self):
+        game.poi_switch_panel_main()
+
+        utils.random_sleep(2)  # 动画时间
+        game.port_open_panel_supply()
+        game.supply_current_fleet()
+        return None
 
 
 def help_5_4():
@@ -454,6 +562,7 @@ ACTIONS = {
     "11s":  auto_1_1_single,
     "23":   Auto23,
     "32":   auto_3_2,
+    "42":   Auto42,
     "54":   help_5_4,
     "d":    auto_destroy,
     "r":    help_battleresult,
