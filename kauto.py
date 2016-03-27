@@ -74,13 +74,13 @@ def auto_1_1_single():
 
     game.combat_map_loading()
     game.combat_map_moving()
-    game.combat_move_to_button_left()
+    game.combat_battle(False)
     game.combat_result()
 
     game.combat_advance()
     game.combat_compass()
     game.combat_map_moving()
-    game.combat_move_to_button_left()
+    game.combat_battle(False)
     game.combat_result()
 
     api_server.wait("/kcsapi/api_get_member/useitem")
@@ -214,7 +214,7 @@ class Auto23(BaseDFA):
         return None
 
 
-def auto_3_2():
+def auto_4_2():
     game.set_foremost()
 
     while True:
@@ -240,6 +240,17 @@ def auto_3_2():
         if port_has_damaged_ship(request):
             game.dock_open_panel_organize()
             break
+
+
+class Auto_3_2(BaseDFA):
+    # D --9 C --6 B --3 A
+    #  \   12         10 \
+    #  13 /           /   2
+    #    H ---11 E ---     .
+    #   8 \           \   1
+    #  /   \           5 /
+    # I     --7 G ----4 F
+    pass
 
 
 def help_5_4():

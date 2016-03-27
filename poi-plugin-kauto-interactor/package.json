@@ -1,6 +1,6 @@
 {
-  "name": "poi-plugin-auto-interactor",
-  "version": "0.0.0",
+  "name": "poi-plugin-kauto-interactor",
+  "version": "0.1.0",
   "main": "index.cjsx",
   "author": {
     "name": "",
