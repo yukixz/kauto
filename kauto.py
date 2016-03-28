@@ -103,7 +103,7 @@ class Auto23(BaseDFA):
 
     def __init__(self, mode='0'):
         self.mode = int(mode)
-        print("Mode ", self.mode, ": ", Auto23.MODE_NAME[self.mode])
+        print("Mode: {} {}".format(self.mode, Auto23.MODE_NAME[self.mode]))
         self.cell_no = 0
         self.path_dict = {
             0:  self.port,
