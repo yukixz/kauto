@@ -14,51 +14,6 @@ from utils import Point
 
 ################################################################
 #
-#  Utils
-#
-################################################################
-
-
-def port_has_damaged_ship(request):
-    ''' Check whether there is damaged ship when returning to port.
-    '''
-    deck0 = request.body['api_deck_port'][0]['api_ship']
-    ships = request.body['api_ship']
-    for ship_id in deck0:
-        if ship_id < 0:
-            continue
-        ship = None
-        for shipd in ships:
-            if shipd.get('api_id', -1) == ship_id:
-                ship = shipd
-                break
-        if ship is None:
-            raise Exception("Cannot find ship with id: %d" % ship_id)
-        if any(['api_nowhp' not in ship,
-                'api_maxhp' not in ship,
-                4 * ship['api_nowhp'] <= ship['api_maxhp']
-                ]):
-            print("!! WARNING: Damaged ship found!")
-            return True
-    return False
-
-
-def advance_has_damaged_ship(request):
-    ''' Check whether there is damaged ship when advancing to next cell.
-    '''
-    ships = request.body['api_ship_data']
-    for ship in ships:
-        if any(['api_nowhp' not in ship,
-                'api_maxhp' not in ship,
-                4 * ship['api_nowhp'] <= ship['api_maxhp']
-                ]):
-            print("!! WARNING: Damaged ship found!")
-            return True
-    return False
-
-
-################################################################
-#
 #  Automatic Script
 #
 ################################################################
@@ -103,7 +58,7 @@ class Auto23(BaseDFA):
 
     def __init__(self, mode='0'):
         self.mode = int(mode)
-        print("Mode ", self.mode, ": ", Auto23.MODE_NAME[self.mode])
+        print("Mode: {} {}".format(self.mode, Auto23.MODE_NAME[self.mode]))
         self.cell_no = 0
         self.path_dict = {
             0:  self.port,
@@ -125,7 +80,7 @@ class Auto23(BaseDFA):
         game.set_foremost()
 
         request = game.dock_back_to_port()
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             game.port_open_panel_organize()
             return None
 
@@ -166,7 +121,7 @@ class Auto23(BaseDFA):
 
         if battle_result == battle.BattleResult.Safe:
             req_ship_deck, req_next = game.combat_advance()
-            if advance_has_damaged_ship(req_ship_deck):
+            if battle.advance_has_damaged_ship(req_ship_deck):
                 game.poi_refresh_page()
                 raise Exception("battle_analyze_failure")
 
@@ -219,7 +174,7 @@ def auto_3_2():
 
     while True:
         request = game.dock_back_to_port()
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             break
 
         game.port_open_panel_sortie()
@@ -237,7 +192,7 @@ def auto_3_2():
         game.port_open_panel_supply()
         game.supply_current_fleet()
 
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             game.dock_open_panel_organize()
             break
 
@@ -251,7 +206,7 @@ class Auto42(BaseDFA):
     #  /   \           5 /
     # I     --7 G ----4 F
 
-    def __init__(self, mode='0'):
+    def __init__(self):
         self.cell_no = 0
         self.path_dict = {
             0:  self.port,
@@ -274,7 +229,7 @@ class Auto42(BaseDFA):
         game.set_foremost()
 
         request = game.dock_back_to_port()
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             game.port_open_panel_organize()
             return None
 
@@ -312,7 +267,7 @@ class Auto42(BaseDFA):
 
         if battle_result == battle.BattleResult.Safe:
             req_ship_deck, req_next = game.combat_advance()
-            if advance_has_damaged_ship(req_ship_deck):
+            if battle.advance_has_damaged_ship(req_ship_deck):
                 game.poi_refresh_page()
                 raise Exception("battle_analyze_failure")
 
