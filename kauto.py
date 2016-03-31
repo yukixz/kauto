@@ -4,11 +4,12 @@ import sys
 import time
 import traceback
 
+import dfa
 import game
 import utils
 import battle
 from api_server import api_server
-from dfa import BaseDFA, BaseDFAStatus
+from dfa import Spot, BaseDFA, BaseDFAStatus
 from utils import Point
 
 
@@ -506,6 +507,86 @@ def test_battle_analyze():
         battle.battle_analyze(request, 0, True)
 
 
+class TestAuto33(dfa.AutoOnceMapDFA):
+    def __init__(self):
+        self.map_area = 3
+        self.map_no = 3
+        self.spot_list = {
+            1: Spot(self.spot_battle,
+                    formation=game.combat_formation_line),
+            2: Spot(self.spot_avoid, compass=True),
+            3: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_line),
+            4: Spot(self.spot_avoid, compass=True),
+            5: Spot(self.spot_battle),
+            6: Spot(self.spot_avoid, compass=True),
+            7: Spot(self.spot_special_battle, compass=True,
+                    formation=game.combat_formation_line),
+            8: Spot(self.spot_battle, final=True,
+                    formation=game.combat_formation_line),
+            9: Spot(self.spot_avoid, compass=True, final=True),
+            10: Spot(self.spot_avoid, compass=True, final=True),
+            11: Spot(self.spot_battle, final=True,
+                     formation=game.combat_formation_line),
+            12: Spot(self.spot_special_battle,
+                     formation=game.combat_formation_line),
+            13: Spot(self.spot_battle, compass=True, final=True,
+                     formation=game.combat_formation_line)
+            }
+
+    def should_night_battle(self):
+        return self.spot_no in (11, 13)
+
+    def spot_special_battle(self):
+        spot = self.spot_list[self.spot_no]
+        if self.auto_formation and spot.formation is not None:
+            spot.formation()
+
+        if self.auto_night:
+            battle_request = game.combat_battle(self.should_night_battle())
+        else:
+            battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
+
+        self.fleet_status = battle.battle_analyze(battle_request)
+        game.combat_result()
+        if spot.final:
+            api_server.wait("/kcsapi/api_get_member/useitem")
+            self.spot_no = 0
+            return self.end
+
+        elif self.auto_advance:
+            if self.should_retreat():
+                game.combat_retreat()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Flagship_Damaged:
+                game.combat_retreat_flagship_damaged()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Ship_Damaged:
+                req_ship_deck, req_next = game.combat_advance()
+                self.spot_no = req_next.body["api_no"]
+                if self.spot_no in [9, 10]:
+                    return self.spot_dispatcher
+                else:
+                    self.spot_no = 0
+                    game.poi_refresh_page()
+                    return None
+
+            if self.fleet_status == battle.BattleResult.Safe:
+                req_ship_deck, req_next = game.combat_advance()
+                if battle.advance_has_damaged_ship(req_ship_deck):
+                    self.fleet_status = battle.BattleResult.Ship_Damaged
+                    game.poi_refresh_page()
+                    raise Exception("BattleAnalyzeFailure")
+
+                else:
+                    self.spot_no = req_next.body["api_no"]
+                    return self.spot_dispatcher
+
+
 ################################################################
 #
 #  Script control
@@ -523,7 +604,8 @@ ACTIONS = {
     "r":    help_battleresult,
     "e":    AutoExpedition,
     "mp":   current_mouse_position,
-    "tba":  test_battle_analyze
+    "tba":  test_battle_analyze,
+    "t33":  TestAuto33
 }
 
 
