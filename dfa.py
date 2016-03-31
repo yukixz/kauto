@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
 from abc import ABCMeta, abstractmethod
+from enum import Enum
+
+import battle
+import game
+import utils
+from api_server import api_server
 
 
 class BaseDFA(metaclass=ABCMeta):
@@ -33,6 +39,190 @@ class BaseDFAStatus(metaclass=ABCMeta):
     @abstractmethod
     def do(self):
         pass
+
+
+class Spot:
+        def __init__(self, spot_type, compass=False, final=False,
+                     formation=None, click_next=None):
+            # General
+            self.spot_type = spot_type
+            self.compass = compass
+            self.final = final
+            # Battle
+            self.formation = formation
+            # Select
+            self.click_next = click_next
+
+
+class BaseMapDFA(BaseDFA):
+    # Control Flag
+    auto_formation = True
+    auto_night = True
+    auto_advance = True
+    # Initial variables
+    fleet_status = battle.BattleResult.Safe
+    spot_no = 0
+
+    @abstractmethod
+    def __init__(self):
+        pass
+    ''' # self.fleet_combined (ToDo)
+        # self.fleet_size     (ToDo)
+        self.map_area
+        self.map_no
+        self.spot_list = {
+            spot_no : Spot(...),
+            ...
+            }
+    '''
+
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
+    def end(self):
+        pass
+
+    def should_night_battle(self):
+        return False
+
+    def should_retreat(self):
+        return False
+
+    def spot_dispatcher(self):
+        spot = self.spot_list.get(self.spot_no, None)
+        if spot is None:
+            return None
+        if spot.compass:
+            game.combat_compass()
+        game.combat_map_moving()
+        return spot.spot_type
+
+    def spot_battle(self):
+        spot = self.spot_list[self.spot_no]
+        if self.auto_formation and spot.formation is not None:
+            spot.formation()
+
+        if self.auto_night:
+            battle_request = game.combat_battle(self.should_night_battle())
+        else:
+            battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
+
+        self.fleet_status = battle.battle_analyze(battle_request)
+        game.combat_result()
+        if spot.final:
+            api_server.wait("/kcsapi/api_get_member/useitem")
+            self.spot_no = 0
+            return self.end
+
+        elif self.auto_advance:
+            if self.should_retreat():
+                game.combat_retreat()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Flagship_Damaged:
+                game.combat_retreat_flagship_damaged()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Ship_Damaged:
+                game.combat_retreat()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Safe:
+                req_ship_deck, req_next = game.combat_advance()
+                if battle.advance_has_damaged_ship(req_ship_deck):
+                    self.fleet_status = battle.BattleResult.Ship_Damaged
+                    game.poi_refresh_page()
+                    raise Exception("BattleAnalyzeFailure")
+
+                else:
+                    self.spot_no = req_next.body["api_no"]
+                    return self.spot_dispatcher
+
+    def spot_avoid(self):
+        spot = self.spot_list[self.spot_no]
+        if spot.final:
+            utils.random_sleep(2)   # 动画时间
+            game.combat_retreat()   # TODO: Write a new method
+            self.spot_no = 0
+            return self.end
+        else:
+            req_next = game.combat_map_next()
+            self.spot_no = req_next.body["api_no"]
+            return self.spot_dispatcher
+
+    def spot_select(self):
+        spot = self.spot_list[self.spot_no]
+        spot.click_next()
+        req_next = game.combat_map_next()
+        self.spot_no = req_next.body["api_no"]
+        return self.spot_dispatcher
+
+
+class HelperMapDFA(BaseMapDFA):
+    def start(self):
+        while True:
+            request = api_server.wait(("/kcsapi/api_req_map/next",
+                                       "/kcsapi/api_req_map/start",
+                                       "/kcsapi/api_port/port"))
+            if request.path == "/kcsapi/api_port/port":
+                if battle.port_has_damaged_ship(request):
+                    self.fleet_status = battle.BattleResult.Ship_Damaged
+                else:
+                    self.fleet_status = battle.BattleResult.Safe
+                return self.start
+
+            if request.path == "/kcsapi/api_req_map/start":
+                if request.body['api_maparea_id'] != self.map_area or \
+                   request.body['api_mapinfo_no'] != self.map_no or \
+                   self.fleet_status != battle.BattleResult.Safe:
+                    return None
+                else:
+                    self.spot_no = request.body["api_no"]
+                    game.combat_map_loading()
+                    return self.spot_dispatcher
+
+            if request.path == "/kcsapi/api_req_map/next":
+                if request.body['api_maparea_id'] != self.map_area or \
+                   request.body['api_mapinfo_no'] != self.map_no:
+                    return None
+                else:
+                    self.spot_no = request.body["api_no"]
+                    return self.spot_dispatcher
+
+    def end(self):
+        return self.start
+
+
+class AutoOnceMapDFA(BaseMapDFA):
+    def start(self):
+        game.set_foremost()
+
+        request = game.dock_back_to_port()
+        if battle.port_has_damaged_ship(request):
+            game.port_open_panel_organize()
+            return None
+
+        game.port_open_panel_sortie()
+        game.sortie_select(self.map_area, self.map_no)
+        req_next = game.sortie_confirm()
+        game.poi_switch_panel_prophet()
+        game.combat_map_loading()
+
+        self.spot_no = req_next.body["api_no"]
+        return self.spot_dispatcher
+
+    def end(self):
+        game.poi_switch_panel_main()
+
+        utils.random_sleep(2)  # 动画时间
+        game.port_open_panel_supply()
+        game.supply_current_fleet()
+        return None
 
 
 class UnknownDFAStatusException(Exception):
