@@ -32,17 +32,13 @@ class Ship:
         return True
 
 
-################################################################
-#
-#  battle_analyze
-#  Analyze the battle package and return current fleet status.
-#  ref: plugin-prophet@73ae09fc9a37754436cf7b5e642b0b1911c0999b
-#       https://github.com/poooi/plugin-prophet
-#
-#  TODO: Repair item
-#
-################################################################
 def battle_analyze(battle_request, combined=0, verbose=False):
+    '''
+    Analyze the battle package and return current fleet status.
+    ref: plugin-prophet@73ae09fc9a37754436cf7b5e642b0b1911c0999b
+         https://github.com/poooi/plugin-prophet
+    TODO: Repair item
+    '''
     def kouku_attack(fleet, kouku):
         if 'api_fdam' in kouku:
             i = 0
@@ -192,16 +188,10 @@ def battle_analyze(battle_request, combined=0, verbose=False):
     return BattleResult.Safe
 
 
-################################################################
-#
-#  battle_time
-#  Estimate durability of a battle.
-#
-#  TODO:
-#
-################################################################
-
 def battle_timer(battle_request, combined=0):
+    '''
+    (TODO)Estimate durability of a battle.
+    '''
     def kouku_time(kouku):
         eta = 0
         return eta
@@ -258,3 +248,48 @@ def battle_timer(battle_request, combined=0):
         total_time += raigeki_time(battle_data['api_raigeki'])
 
     return total_time
+
+
+################################################################
+#
+#  Utils
+#
+################################################################
+
+
+def port_has_damaged_ship(request):
+    ''' Check whether there is damaged ship when returning to port.
+    '''
+    deck0 = request.body['api_deck_port'][0]['api_ship']
+    ships = request.body['api_ship']
+    for ship_id in deck0:
+        if ship_id < 0:
+            continue
+        ship = None
+        for shipd in ships:
+            if shipd.get('api_id', -1) == ship_id:
+                ship = shipd
+                break
+        if ship is None:
+            raise Exception("Cannot find ship with id: %d" % ship_id)
+        if any(['api_nowhp' not in ship,
+                'api_maxhp' not in ship,
+                4 * ship['api_nowhp'] <= ship['api_maxhp']
+                ]):
+            print("!! WARNING: Damaged ship found!")
+            return True
+    return False
+
+
+def advance_has_damaged_ship(request):
+    ''' Check whether there is damaged ship when advancing to next cell.
+    '''
+    ships = request.body['api_ship_data']
+    for ship in ships:
+        if any(['api_nowhp' not in ship,
+                'api_maxhp' not in ship,
+                4 * ship['api_nowhp'] <= ship['api_maxhp']
+                ]):
+            print("!! WARNING: Damaged ship found!")
+            return True
+    return False

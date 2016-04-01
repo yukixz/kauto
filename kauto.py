@@ -4,57 +4,13 @@ import sys
 import time
 import traceback
 
+import dfa
 import game
 import utils
 import battle
 from api_server import api_server
-from dfa import BaseDFA, BaseDFAStatus
+from dfa import Spot, BaseDFA, BaseDFAStatus
 from utils import Point
-
-
-################################################################
-#
-#  Utils
-#
-################################################################
-
-
-def port_has_damaged_ship(request):
-    ''' Check whether there is damaged ship when returning to port.
-    '''
-    deck0 = request.body['api_deck_port'][0]['api_ship']
-    ships = request.body['api_ship']
-    for ship_id in deck0:
-        if ship_id < 0:
-            continue
-        ship = None
-        for shipd in ships:
-            if shipd.get('api_id', -1) == ship_id:
-                ship = shipd
-                break
-        if ship is None:
-            raise Exception("Cannot find ship with id: %d" % ship_id)
-        if any(['api_nowhp' not in ship,
-                'api_maxhp' not in ship,
-                4 * ship['api_nowhp'] <= ship['api_maxhp']
-                ]):
-            print("!! WARNING: Damaged ship found!")
-            return True
-    return False
-
-
-def advance_has_damaged_ship(request):
-    ''' Check whether there is damaged ship when advancing to next cell.
-    '''
-    ships = request.body['api_ship_data']
-    for ship in ships:
-        if any(['api_nowhp' not in ship,
-                'api_maxhp' not in ship,
-                4 * ship['api_nowhp'] <= ship['api_maxhp']
-                ]):
-            print("!! WARNING: Damaged ship found!")
-            return True
-    return False
 
 
 ################################################################
@@ -125,7 +81,7 @@ class Auto23(BaseDFA):
         game.set_foremost()
 
         request = game.dock_back_to_port()
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             game.port_open_panel_organize()
             return None
 
@@ -166,7 +122,7 @@ class Auto23(BaseDFA):
 
         if battle_result == battle.BattleResult.Safe:
             req_ship_deck, req_next = game.combat_advance()
-            if advance_has_damaged_ship(req_ship_deck):
+            if battle.advance_has_damaged_ship(req_ship_deck):
                 game.poi_refresh_page()
                 raise Exception("battle_analyze_failure")
 
@@ -219,7 +175,7 @@ def auto_3_2():
 
     while True:
         request = game.dock_back_to_port()
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             break
 
         game.port_open_panel_sortie()
@@ -237,7 +193,7 @@ def auto_3_2():
         game.port_open_panel_supply()
         game.supply_current_fleet()
 
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             game.dock_open_panel_organize()
             break
 
@@ -251,7 +207,7 @@ class Auto42(BaseDFA):
     #  /   \           5 /
     # I     --7 G ----4 F
 
-    def __init__(self, mode='0'):
+    def __init__(self):
         self.cell_no = 0
         self.path_dict = {
             0:  self.port,
@@ -274,7 +230,7 @@ class Auto42(BaseDFA):
         game.set_foremost()
 
         request = game.dock_back_to_port()
-        if port_has_damaged_ship(request):
+        if battle.port_has_damaged_ship(request):
             game.port_open_panel_organize()
             return None
 
@@ -312,7 +268,7 @@ class Auto42(BaseDFA):
 
         if battle_result == battle.BattleResult.Safe:
             req_ship_deck, req_next = game.combat_advance()
-            if advance_has_damaged_ship(req_ship_deck):
+            if battle.advance_has_damaged_ship(req_ship_deck):
                 game.poi_refresh_page()
                 raise Exception("battle_analyze_failure")
 
@@ -551,6 +507,86 @@ def test_battle_analyze():
         battle.battle_analyze(request, 0, True)
 
 
+class TestAuto33(dfa.AutoOnceMapDFA):
+    def __init__(self):
+        self.map_area = 3
+        self.map_no = 3
+        self.spot_list = {
+            1: Spot(self.spot_battle,
+                    formation=game.combat_formation_line),
+            2: Spot(self.spot_avoid, compass=True),
+            3: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_line),
+            4: Spot(self.spot_avoid, compass=True),
+            5: Spot(self.spot_battle),
+            6: Spot(self.spot_avoid, compass=True),
+            7: Spot(self.spot_special_battle, compass=True,
+                    formation=game.combat_formation_line),
+            8: Spot(self.spot_battle, final=True,
+                    formation=game.combat_formation_line),
+            9: Spot(self.spot_avoid, compass=True, final=True),
+            10: Spot(self.spot_avoid, compass=True, final=True),
+            11: Spot(self.spot_battle, final=True,
+                     formation=game.combat_formation_line),
+            12: Spot(self.spot_special_battle,
+                     formation=game.combat_formation_line),
+            13: Spot(self.spot_battle, compass=True, final=True,
+                     formation=game.combat_formation_line)
+            }
+
+    def should_night_battle(self):
+        return self.spot_no in (11, 13)
+
+    def spot_special_battle(self):
+        spot = self.spot_list[self.spot_no]
+        if self.auto_formation and spot.formation is not None:
+            spot.formation()
+
+        if self.auto_night:
+            battle_request = game.combat_battle(self.should_night_battle())
+        else:
+            battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
+
+        self.fleet_status = battle.battle_analyze(battle_request)
+        game.combat_result()
+        if spot.final:
+            api_server.wait("/kcsapi/api_get_member/useitem")
+            self.spot_no = 0
+            return self.end
+
+        elif self.auto_advance:
+            if self.should_retreat():
+                game.combat_retreat()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Flagship_Damaged:
+                game.combat_retreat_flagship_damaged()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Ship_Damaged:
+                req_ship_deck, req_next = game.combat_advance()
+                self.spot_no = req_next.body["api_no"]
+                if self.spot_no in [9, 10]:
+                    return self.spot_dispatcher
+                else:
+                    self.spot_no = 0
+                    game.poi_refresh_page()
+                    return None
+
+            if self.fleet_status == battle.BattleResult.Safe:
+                req_ship_deck, req_next = game.combat_advance()
+                if battle.advance_has_damaged_ship(req_ship_deck):
+                    self.fleet_status = battle.BattleResult.Ship_Damaged
+                    game.poi_refresh_page()
+                    raise Exception("BattleAnalyzeFailure")
+
+                else:
+                    self.spot_no = req_next.body["api_no"]
+                    return self.spot_dispatcher
+
+
 ################################################################
 #
 #  Script control
@@ -568,7 +604,8 @@ ACTIONS = {
     "r":    help_battleresult,
     "e":    AutoExpedition,
     "mp":   current_mouse_position,
-    "tba":  test_battle_analyze
+    "tba":  test_battle_analyze,
+    "t33":  TestAuto33
 }
 
 
