@@ -552,6 +552,8 @@ def expedition_select(i):
     print("expedition_select", i)
     map = math.ceil(i / 8)
     mission = i % 8
+    if mission == 0:
+        mission = 8
     select_map = globals()["expedition_select_map_%d" % map]
     select_mission = globals()["expedition_select_mission_%d" % mission]
     if callable(select_map) and callable(select_mission):
