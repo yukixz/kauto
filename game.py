@@ -489,6 +489,16 @@ def combat_map_enemy_animation():
     random_sleep(2)
 
 
+def combat_summary():
+    print("combat_summary")
+    random_sleep(2)
+    combat_button_right()
+    request = wait("/kcsapi/api_port/port")
+    wait("/kcsapi/api_get_member/useitem")
+    random_sleep(1.2)  # 动画时间
+    return request
+
+
 ################################################################
 #
 #   Expedition

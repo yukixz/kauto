@@ -214,8 +214,7 @@ class BaseMapDFA(BaseDFA):
     def spot_avoid(self):
         spot = self.spot_list[self.spot_no]
         if spot.final:
-            utils.random_sleep(2)   # 动画时间
-            game.combat_retreat()   # TODO: Write a new method
+            game.combat_summary()
             self.spot_no = 0
             return self.end
         else:
