@@ -4,6 +4,7 @@ import math
 import platform
 import pyautogui
 
+import config
 import utils
 from api_server import api_server
 from utils import Point, random_sleep, random_point, random_click
@@ -622,8 +623,14 @@ def poi_refresh_page():
 
 
 def poi_switch_panel_main():
+    if not config.poi_interaction:
+        return
+    print("poi_switch_panel_main")
     pyautogui.hotkey('ctrl', '1')
 
 
 def poi_switch_panel_prophet():
+    if not config.poi_interaction:
+        return
+    print("poi_switch_panel_prophet")
     pyautogui.hotkey('ctrl', '3')
