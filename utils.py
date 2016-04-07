@@ -81,10 +81,11 @@ def random_sleep_until(min, max=None, floor=0):
         max = min
 
     now = time.time()
+    if (max - now) <= floor:
+        return
+
     end = random.uniform(min, max)
     seconds = end - now
-    if seconds <= floor:
-        return
 
     end_dt = datetime.fromtimestamp(end)
     print("sleep until:", end_dt.strftime("%I:%M:%S %p"))
