@@ -454,7 +454,7 @@ def combat_battle(night=False):
                     ], keep=True)
                 return night_battle
             else:
-                random_sleep(8)
+                random_sleep(6, 10)
     else:
         while True:
             combat_no_night()
