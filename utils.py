@@ -43,25 +43,26 @@ class Point():
 def random_point(a, b=None):
     if b is None:
         b = a
-    type_ = random.choice((1, 2))
-    if type_ == 1:
-        dx = b.x - a.x
-        dy = b.y - a.y
-        x = a.x + dx * random.random()
-        y = a.y + dy * random.random()
-        return Point(x, y)
-    if type_ == 2:
-        # Get a point in a circle(a=1, b=1, r=1).
-        cr = random.random()
-        ca = random.randint(0, 360) / 180 * math.pi
-        cx = 1 + cr * math.cos(ca)
-        cy = 1 + cr * math.sin(ca)
-        # Transform
-        dx = b.x - a.x
-        dy = b.y - a.y
-        x = a.x + dx * cx / 2
-        y = a.y + dy * cy / 2
-        return Point(x, y)
+    method = random.choice((random_point_1,
+                            random_point_2,))
+    return method(a, b)
+
+
+def random_point_1(a, b):
+    dx = b.x - a.x
+    dy = b.y - a.y
+    x = a.x + dx * random.random()
+    y = a.y + dy * random.random()
+    return Point(x, y)
+
+
+def random_point_2(a, b, center=Point(400, 240)):
+    # TODO: Point tend to center
+    dx = b.x - a.x
+    dy = b.y - a.y
+    x = a.x + dx * random.betavariate(3, 5)
+    y = a.y + dy * random.betavariate(3, 5)
+    return Point(x, y)
 
 
 def random_click(a, b=None):
