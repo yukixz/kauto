@@ -156,8 +156,7 @@ class Auto23(BaseDFA):
     def path_compass_final_normal(self):
         game.combat_compass()
         game.combat_map_moving()
-        utils.random_sleep(2)   # 动画时间
-        game.combat_retreat()   # TODO: Write a new method
+        game.combat_summary()
         self.cell_no = 0
         return self.port
 
@@ -303,8 +302,7 @@ class Auto42(BaseDFA):
     def path_compass_final_normal(self):
         game.combat_compass()
         game.combat_map_moving()
-        utils.random_sleep(2)   # 动画时间
-        game.combat_retreat()   # TODO: Write a new method
+        game.combat_summary()
         self.cell_no = 0
         return self.port
 
@@ -507,6 +505,23 @@ def test_battle_analyze():
         battle.battle_analyze(request, 0, True)
 
 
+class TestAuto15(dfa.AutoOnceMapDFA):
+    def __init__(self):
+        self.map_area = 1
+        self.map_no = 5
+        self.spot_list = {
+            1:  Spot(self.spot_battle,
+                     formation=game.combat_formation_abreast),
+            2:  Spot(self.spot_battle,
+                     formation=game.combat_formation_abreast),
+            4:  Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_abreast),
+            5:  Spot(self.spot_avoid, compass=True),
+            10: Spot(self.spot_battle, compass=True, final=True,
+                     formation=game.combat_formation_abreast, enemy_animation=True),
+        }
+
+
 class TestAuto33(dfa.AutoOnceMapDFA):
     def __init__(self):
         self.map_area = 3
@@ -520,7 +535,7 @@ class TestAuto33(dfa.AutoOnceMapDFA):
             4: Spot(self.spot_avoid, compass=True),
             5: Spot(self.spot_battle),
             6: Spot(self.spot_avoid, compass=True),
-            7: Spot(self.spot_special_battle, compass=True,
+            7: Spot(self.spot_battle_with_challenge, compass=True,
                     formation=game.combat_formation_line),
             8: Spot(self.spot_battle, final=True,
                     formation=game.combat_formation_line),
@@ -528,63 +543,39 @@ class TestAuto33(dfa.AutoOnceMapDFA):
             10: Spot(self.spot_avoid, compass=True, final=True),
             11: Spot(self.spot_battle, final=True,
                      formation=game.combat_formation_line),
-            12: Spot(self.spot_special_battle,
+            12: Spot(self.spot_battle_with_challenge,
                      formation=game.combat_formation_line),
             13: Spot(self.spot_battle, compass=True, final=True,
                      formation=game.combat_formation_line)
             }
+        self.safe_spot_list = [9, 10]
 
     def should_night_battle(self):
         return self.spot_no in (11, 13)
 
-    def spot_special_battle(self):
-        spot = self.spot_list[self.spot_no]
-        if self.auto_formation and spot.formation is not None:
-            spot.formation()
 
-        if self.auto_night:
-            battle_request = game.combat_battle(self.should_night_battle())
-        else:
-            battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
+class TestAuto43(dfa.AutoOnceMapDFA):
+    def __init__(self):
+        self.map_area = 4
+        self.map_no = 3
+        self.spot_list = {
+            1:  Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_line),
+            4:  Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_abreast, enemy_animation=True),
+            7:  Spot(self.spot_battle_with_challenge, compass=True,
+                     formation=game.combat_formation_abreast, enemy_animation=True),
+            11: Spot(self.spot_avoid, compass=True, final=True),
+            14: Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_abreast, enemy_animation=True),
+            16: Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_abreast, enemy_animation=True),
+            19: Spot(None, wrong_path=True)
+        }
+        self.safe_spot_list = [11]
 
-        self.fleet_status = battle.battle_analyze(battle_request)
-        game.combat_result()
-        if spot.final:
-            api_server.wait("/kcsapi/api_get_member/useitem")
-            self.spot_no = 0
-            return self.end
-
-        elif self.auto_advance:
-            if self.should_retreat():
-                game.combat_retreat()
-                self.spot_no = 0
-                return self.end
-
-            if self.fleet_status == battle.BattleResult.Flagship_Damaged:
-                game.combat_retreat_flagship_damaged()
-                self.spot_no = 0
-                return self.end
-
-            if self.fleet_status == battle.BattleResult.Ship_Damaged:
-                req_ship_deck, req_next = game.combat_advance()
-                self.spot_no = req_next.body["api_no"]
-                if self.spot_no in [9, 10]:
-                    return self.spot_dispatcher
-                else:
-                    self.spot_no = 0
-                    game.poi_refresh_page()
-                    return None
-
-            if self.fleet_status == battle.BattleResult.Safe:
-                req_ship_deck, req_next = game.combat_advance()
-                if battle.advance_has_damaged_ship(req_ship_deck):
-                    self.fleet_status = battle.BattleResult.Ship_Damaged
-                    game.poi_refresh_page()
-                    raise Exception("BattleAnalyzeFailure")
-
-                else:
-                    self.spot_no = req_next.body["api_no"]
-                    return self.spot_dispatcher
+    def should_retreat(self):
+        return self.spot_no in (16,)
 
 
 ################################################################
@@ -605,7 +596,9 @@ ACTIONS = {
     "e":    AutoExpedition,
     "mp":   current_mouse_position,
     "tba":  test_battle_analyze,
-    "t33":  TestAuto33
+    "t15":  TestAuto15,
+    "t33":  TestAuto33,
+    "t43":  TestAuto43
 }
 
 
