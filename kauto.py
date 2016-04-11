@@ -578,6 +578,21 @@ class TestAuto43(dfa.AutoOnceMapDFA):
         return self.spot_no in (16,)
 
 
+class TestAuto51(dfa.AutoOnceMapDFA):
+    def __init__(self):
+        self.map_area = 5
+        self.map_no = 1
+        self.spot_list = {
+            1:  Spot(self.spot_avoid, compass=True),
+            2:  Spot(None, wrong_path=True),
+            3:  Spot(self.spot_battle,
+                     formation=game.combat_formation_abreast, enemy_animation=True)
+        }
+
+    def should_retreat(self):
+        return self.spot_no in (3,)
+
+
 ################################################################
 #
 #  Script control
@@ -598,7 +613,8 @@ ACTIONS = {
     "tba":  test_battle_analyze,
     "t15":  TestAuto15,
     "t33":  TestAuto33,
-    "t43":  TestAuto43
+    "t43":  TestAuto43,
+    "t51":  TestAuto51
 }
 
 

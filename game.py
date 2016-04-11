@@ -240,6 +240,12 @@ def sortie_select_area_4():
     point.click()
 
 
+# 出击：4-*
+def sortie_select_area_5():
+    point = random_point(Point(435, 425), Point(468, 448))
+    point.click()
+
+
 # 出击：EX-*
 def sortie_select_area_ex():
     random_click(Point(670, 450-22), Point(750, 480-22))
