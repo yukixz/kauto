@@ -505,8 +505,8 @@ def test_battle_analyze():
         battle.battle_analyze(request, 0, True)
 
 
-class TestAuto15(dfa.AutoOnceMapDFA):
-    def __init__(self):
+class Auto15(dfa.AutoOnceMapDFA):
+    def init_data(self):
         self.map_area = 1
         self.map_no = 5
         self.spot_list = {
@@ -522,8 +522,8 @@ class TestAuto15(dfa.AutoOnceMapDFA):
         }
 
 
-class TestAuto33(dfa.AutoOnceMapDFA):
-    def __init__(self):
+class Auto33(dfa.AutoOnceMapDFA):
+    def init_data(self):
         self.map_area = 3
         self.map_no = 3
         self.spot_list = {
@@ -554,8 +554,8 @@ class TestAuto33(dfa.AutoOnceMapDFA):
         return self.spot_no in (11, 13)
 
 
-class TestAuto43(dfa.AutoOnceMapDFA):
-    def __init__(self):
+class Auto43(dfa.AutoOnceMapDFA):
+    def init_data(self):
         self.map_area = 4
         self.map_no = 3
         self.spot_list = {
@@ -578,8 +578,8 @@ class TestAuto43(dfa.AutoOnceMapDFA):
         return self.spot_no in (16,)
 
 
-class TestAuto51(dfa.AutoOnceMapDFA):
-    def __init__(self):
+class Auto51(dfa.AutoOnceMapDFA):
+    def init_data(self):
         self.map_area = 5
         self.map_no = 1
         self.spot_list = {
@@ -610,11 +610,11 @@ ACTIONS = {
     "r":    help_battleresult,
     "e":    AutoExpedition,
     "mp":   current_mouse_position,
-    "tba":  test_battle_analyze,
-    "t15":  TestAuto15,
-    "t33":  TestAuto33,
-    "t43":  TestAuto43,
-    "t51":  TestAuto51
+    "ba":   test_battle_analyze,
+    "15":   Auto15,
+    "33":   Auto33,
+    "43":   Auto43,
+    "51":   Auto51
 }
 
 
