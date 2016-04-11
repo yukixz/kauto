@@ -23,7 +23,7 @@ class BaseDFA(metaclass=ABCMeta):
 
             print("DFA", "=>", status.__name__)
             if callable(status):
-                # DFA Stauts
+                # DFA Status
                 if issubclass(status, BaseDFAStatus):
                     status = status().do()
                 # Raw function
@@ -42,13 +42,15 @@ class BaseDFAStatus(metaclass=ABCMeta):
 
 
 class Spot:
-        def __init__(self, spot_type, compass=False, final=False,
-                     formation=None, click_next=None):
+        def __init__(self, spot_type, wrong_path=False, compass=False, final=False,
+                     enemy_animation=False, formation=None, click_next=None):
             # General
             self.spot_type = spot_type
+            self.wrong_path = wrong_path
             self.compass = compass
             self.final = final
             # Battle
+            self.enemy_animation = enemy_animation
             self.formation = formation
             # Select
             self.click_next = click_next
@@ -61,19 +63,28 @@ class BaseMapDFA(BaseDFA):
     auto_advance = True
     # Initial variables
     fleet_status = battle.BattleResult.Safe
+    fleet_combined = 0
+    map_area = 0
+    map_no = 0
     spot_no = 0
+    spot_list = {}
+    safe_spot_list = []
 
     @abstractmethod
     def __init__(self):
         pass
-    ''' # self.fleet_combined (ToDo)
-        # self.fleet_size     (ToDo)
-        self.map_area
+    ''' self.map_area
         self.map_no
         self.spot_list = {
             spot_no : Spot(...),
             ...
             }
+        # 若使用了spot_battle_with_challenge
+        self.safe_spot_list = []
+        # 若是联合舰队
+        self.fleet_combined = 1 # 機動部隊
+                              2 # 水上部隊
+                              3 # 輸送部隊
     '''
 
     @abstractmethod
@@ -94,6 +105,10 @@ class BaseMapDFA(BaseDFA):
         spot = self.spot_list.get(self.spot_no, None)
         if spot is None:
             return None
+        if spot.wrong_path:
+            self.spot_no = 0
+            game.poi_refresh_page()
+            return None
         if spot.compass:
             game.combat_compass()
         game.combat_map_moving()
@@ -101,6 +116,8 @@ class BaseMapDFA(BaseDFA):
 
     def spot_battle(self):
         spot = self.spot_list[self.spot_no]
+        if spot.enemy_animation:
+            game.combat_map_enemy_animation()
         if self.auto_formation and spot.formation is not None:
             spot.formation()
 
@@ -109,7 +126,7 @@ class BaseMapDFA(BaseDFA):
         else:
             battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
 
-        self.fleet_status = battle.battle_analyze(battle_request)
+        self.fleet_status = battle.battle_analyze(battle_request, combined=self.fleet_combined)
         game.combat_result()
         if spot.final:
             api_server.wait("/kcsapi/api_get_member/useitem")
@@ -143,11 +160,61 @@ class BaseMapDFA(BaseDFA):
                     self.spot_no = req_next.body["api_no"]
                     return self.spot_dispatcher
 
+    def spot_battle_with_challenge(self):
+        spot = self.spot_list[self.spot_no]
+        if spot.enemy_animation:
+            game.combat_map_enemy_animation()
+        if self.auto_formation and spot.formation is not None:
+            spot.formation()
+
+        if self.auto_night:
+            battle_request = game.combat_battle(self.should_night_battle())
+        else:
+            battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
+
+        self.fleet_status = battle.battle_analyze(battle_request, combined=self.fleet_combined)
+        game.combat_result()
+        if spot.final:
+            api_server.wait("/kcsapi/api_get_member/useitem")
+            self.spot_no = 0
+            return self.end
+
+        elif self.auto_advance:
+            if self.should_retreat():
+                game.combat_retreat()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Flagship_Damaged:
+                game.combat_retreat_flagship_damaged()
+                self.spot_no = 0
+                return self.end
+
+            if self.fleet_status == battle.BattleResult.Ship_Damaged:
+                req_ship_deck, req_next = game.combat_advance()
+                self.spot_no = req_next.body["api_no"]
+                if self.spot_no in self.safe_spot_list:
+                    return self.spot_dispatcher
+                else:
+                    self.spot_no = 0
+                    game.poi_refresh_page()
+                    return None
+
+            if self.fleet_status == battle.BattleResult.Safe:
+                req_ship_deck, req_next = game.combat_advance()
+                if battle.advance_has_damaged_ship(req_ship_deck):
+                    self.fleet_status = battle.BattleResult.Ship_Damaged
+                    game.poi_refresh_page()
+                    raise Exception("BattleAnalyzeFailure")
+
+                else:
+                    self.spot_no = req_next.body["api_no"]
+                    return self.spot_dispatcher
+
     def spot_avoid(self):
         spot = self.spot_list[self.spot_no]
         if spot.final:
-            utils.random_sleep(2)   # 动画时间
-            game.combat_retreat()   # TODO: Write a new method
+            game.combat_summary()
             self.spot_no = 0
             return self.end
         else:
