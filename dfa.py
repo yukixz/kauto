@@ -57,35 +57,30 @@ class Spot:
 
 
 class BaseMapDFA(BaseDFA):
-    # Control Flag
-    auto_formation = True
-    auto_night = True
-    auto_advance = True
-    # Initial variables
-    fleet_status = battle.BattleResult.Safe
-    fleet_combined = 0
-    map_area = 0
-    map_no = 0
-    spot_no = 0
-    spot_list = {}
-    safe_spot_list = []
+    def __init__(self):
+        # Initial variables
+        self.fleet_status = battle.BattleResult.Safe
+        self.spot_no = 0
+
+        # Control Flag
+        self.auto_formation = True
+        self.auto_night = True
+        self.auto_advance = True
+
+        # Variables to be defined
+        self.fleet_combined = 0     # 0:通常, 1:機動, 2:水上, 3:輸送
+        self.map_area = 0
+        self.map_no = 0
+        self.message = ""
+        self.spot_list = {}         # = {spot_no : Spot(...), ...}
+        self.safe_spot_list = []    # spot_battle_with_challenge需要
+
+        self.init_data()
+        print("Map {}-{} {}".format(self.map_area, self.map_no, self.message))
 
     @abstractmethod
-    def __init__(self):
+    def init_data(self):
         pass
-    ''' self.map_area
-        self.map_no
-        self.spot_list = {
-            spot_no : Spot(...),
-            ...
-            }
-        # 若使用了spot_battle_with_challenge
-        self.safe_spot_list = []
-        # 若是联合舰队
-        self.fleet_combined = 1 # 機動部隊
-                              2 # 水上部隊
-                              3 # 輸送部隊
-    '''
 
     @abstractmethod
     def start(self):
