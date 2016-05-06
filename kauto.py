@@ -57,7 +57,7 @@ class Auto23(BaseDFA):
                  2: "BOSS点入夜",
                  3: "补给/轻航/BOSS点入夜"}
 
-    def __init__(self, mode='0'):
+    def __init__(self, mode='1'):
         self.mode = int(mode)
         print("Mode: {} {}".format(self.mode, Auto23.MODE_NAME[self.mode]))
         self.cell_no = 0
@@ -373,7 +373,7 @@ def auto_destroy():
 
 
 class AutoExpedition(BaseDFA):
-    def __init__(self, run_hours=4):
+    def __init__(self, run_hours=12):
         # Timestamp of stoping running.
         run_hours = int(run_hours)
         self.stop_time = time.time() + run_hours * 3600
@@ -518,7 +518,8 @@ class Auto15(dfa.AutoOnceMapDFA):
                      formation=game.combat_formation_abreast),
             5:  Spot(self.spot_avoid, compass=True),
             10: Spot(self.spot_battle, compass=True, final=True,
-                     formation=game.combat_formation_abreast, enemy_animation=True),
+                     formation=game.combat_formation_abreast,
+                     enemy_animation=True),
         }
 
 
@@ -561,15 +562,16 @@ class Auto43(dfa.AutoOnceMapDFA):
         self.spot_list = {
             1:  Spot(self.spot_battle, compass=True,
                      formation=game.combat_formation_line),
-            4:  Spot(self.spot_battle, compass=True,
-                     formation=game.combat_formation_abreast, enemy_animation=True),
+            4:  Spot(self.spot_battle, compass=True, enemy_animation=True,
+                     formation=game.combat_formation_abreast),
             7:  Spot(self.spot_battle_with_challenge, compass=True,
-                     formation=game.combat_formation_abreast, enemy_animation=True),
+                     enemy_animation=True,
+                     formation=game.combat_formation_abreast),
             11: Spot(self.spot_avoid, compass=True, final=True),
-            14: Spot(self.spot_battle, compass=True,
-                     formation=game.combat_formation_abreast, enemy_animation=True),
-            16: Spot(self.spot_battle, compass=True,
-                     formation=game.combat_formation_abreast, enemy_animation=True),
+            14: Spot(self.spot_battle, compass=True, enemy_animation=True,
+                     formation=game.combat_formation_abreast),
+            16: Spot(self.spot_battle, compass=True, enemy_animation=True,
+                     formation=game.combat_formation_abreast),
             19: Spot(None, wrong_path=True)
         }
         self.safe_spot_list = [11]
@@ -585,12 +587,31 @@ class Auto51(dfa.AutoOnceMapDFA):
         self.spot_list = {
             1:  Spot(self.spot_avoid, compass=True),
             2:  Spot(None, wrong_path=True),
-            3:  Spot(self.spot_battle,
-                     formation=game.combat_formation_abreast, enemy_animation=True)
+            3:  Spot(self.spot_battle, enemy_animation=True,
+                     formation=game.combat_formation_abreast)
         }
 
     def should_retreat(self):
         return self.spot_no in (3,)
+
+
+class AutoE3(dfa.HelperMapDFA):
+    def init_data(self):
+        self.map_area = 34
+        self.map_no = 3
+        self.spot_list = {
+            2: Spot(self.spot_avoid),
+            4: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_combined_battle),
+            6: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_combined_battle),
+            }
+
+    def should_night_battle(self):
+        return True
+
+    def should_retreat(self):
+        return self.spot_no in (6,)
 
 
 ################################################################
@@ -614,7 +635,8 @@ ACTIONS = {
     "15":   Auto15,
     "33":   Auto33,
     "43":   Auto43,
-    "51":   Auto51
+    "51":   Auto51,
+    "e3":   AutoE3,
 }
 
 

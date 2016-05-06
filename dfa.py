@@ -41,19 +41,23 @@ class BaseDFAStatus(metaclass=ABCMeta):
         pass
 
 
+class UnknownDFAStatusException(Exception):
+    pass
+
+
 class Spot:
-        def __init__(self, spot_type, wrong_path=False, compass=False, final=False,
-                     enemy_animation=False, formation=None, click_next=None):
-            # General
-            self.spot_type = spot_type
-            self.wrong_path = wrong_path
-            self.compass = compass
-            self.final = final
-            # Battle
-            self.enemy_animation = enemy_animation
-            self.formation = formation
-            # Select
-            self.click_next = click_next
+    def __init__(self, spot_type, wrong_path=False, compass=False, final=False,
+                 enemy_animation=False, formation=None, click_next=None):
+        # General
+        self.spot_type = spot_type
+        self.wrong_path = wrong_path
+        self.compass = compass
+        self.final = final
+        # Battle
+        self.enemy_animation = enemy_animation
+        self.formation = formation
+        # Select
+        self.click_next = click_next
 
 
 class BaseMapDFA(BaseDFA):
@@ -121,7 +125,8 @@ class BaseMapDFA(BaseDFA):
         else:
             battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
 
-        self.fleet_status = battle.battle_analyze(battle_request, combined=self.fleet_combined)
+        self.fleet_status = battle.battle_analyze(
+            battle_request, combined=self.fleet_combined)
         game.combat_result()
         if spot.final:
             api_server.wait("/kcsapi/api_get_member/useitem")
@@ -167,7 +172,8 @@ class BaseMapDFA(BaseDFA):
         else:
             battle_request = api_server.wait('/kcsapi/api_req_sortie/battle')
 
-        self.fleet_status = battle.battle_analyze(battle_request, combined=self.fleet_combined)
+        self.fleet_status = battle.battle_analyze(
+            battle_request, combined=self.fleet_combined)
         game.combat_result()
         if spot.final:
             api_server.wait("/kcsapi/api_get_member/useitem")
@@ -285,7 +291,3 @@ class AutoOnceMapDFA(BaseMapDFA):
         game.port_open_panel_supply()
         game.supply_current_fleet()
         return None
-
-
-class UnknownDFAStatusException(Exception):
-    pass

@@ -254,8 +254,10 @@ def sortie_select_area_ex():
 # 出击：a-b
 def sortie_select(area, map):
     print("sortie_select: %d-%d" % (area, map))
-    select_area = globals()["sortie_select_area_%d" % area]
-    select_map = globals()["sortie_select_map_%d" % map]
+    if area > 30:
+        area = 'ex'
+    select_area = globals()["sortie_select_area_{}".format(area)]
+    select_map = globals()["sortie_select_map_{}".format(map)]
     if callable(select_area) and callable(select_map):
         select_area()
         random_sleep(0.6)
@@ -438,7 +440,8 @@ def combat_result():
 # No pratice battle.
 def combat_battle(night=False):
     print("combat_battle")
-    day_battle = wait('/kcsapi/api_req_sortie/battle')
+    day_battle = wait(['/kcsapi/api_req_sortie/battle',
+                       '/kcsapi/api_req_combined_battle/battle'])
     if day_battle.body['api_midnight_flag'] == 0:
         wait([
             '/kcsapi/api_req_sortie/battleresult',
