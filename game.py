@@ -440,12 +440,20 @@ def combat_result():
 # No pratice battle.
 def combat_battle(night=False):
     print("combat_battle")
-    day_battle = wait(['/kcsapi/api_req_sortie/battle',
-                       '/kcsapi/api_req_combined_battle/battle'])
+    day_battle = wait([
+        '/kcsapi/api_req_sortie/battle',
+        '/kcsapi/api_req_sortie/airbattle',
+        '/kcsapi/api_req_battle_midnight/sp_midnight',
+        '/kcsapi/api_req_combined_battle/battle',
+        '/kcsapi/api_req_combined_battle/battle_water',
+        '/kcsapi/api_req_combined_battle/airbattle',
+        '/kcsapi/api_req_combined_battle/sp_midnight',
+        '/kcsapi/api_req_practice/battle',
+        ])
     if day_battle.body['api_midnight_flag'] == 0:
         wait([
             '/kcsapi/api_req_sortie/battleresult',
-            '/kcsapi/api_req_combined_battle/battleresult'
+            '/kcsapi/api_req_combined_battle/battleresult',
             ], keep=True)
         return day_battle
     random_sleep(30)
@@ -454,12 +462,13 @@ def combat_battle(night=False):
             combat_night()
             night_battle = wait([
                 '/kcsapi/api_req_battle_midnight/battle',
-                '/kcsapi/api_req_combined_battle/midnight_battle'
+                '/kcsapi/api_req_combined_battle/midnight_battle',
+                '/kcsapi/api_req_practice/midnight_battle',
                 ], timeout=0)
             if night_battle:
                 wait([
                     '/kcsapi/api_req_sortie/battleresult',
-                    '/kcsapi/api_req_combined_battle/battleresult'
+                    '/kcsapi/api_req_combined_battle/battleresult',
                     ], keep=True)
                 return night_battle
             else:
@@ -469,7 +478,7 @@ def combat_battle(night=False):
             combat_no_night()
             request = wait([
                 '/kcsapi/api_req_sortie/battleresult',
-                '/kcsapi/api_req_combined_battle/battleresult'
+                '/kcsapi/api_req_combined_battle/battleresult',
                 ], timeout=0, keep=True)
             if request:
                 return day_battle
