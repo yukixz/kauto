@@ -595,7 +595,23 @@ class Auto51(dfa.AutoOnceMapDFA):
         return self.spot_no in (3,)
 
 
-class AutoE3(dfa.HelperMapDFA):
+class Auto53(dfa.AutoOnceMapDFA):
+    def init_data(self):
+        self.map_area = 5
+        self.map_no = 3
+        self.spot_list = {
+            1: Spot(self.spot_avoid),
+            2: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_line),
+            3: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_line),
+        }
+
+    def should_retreat(self):
+        return self.spot_no in (2, )
+
+
+class HelperE3(dfa.HelperMapDFA):
     def init_data(self):
         self.map_area = 34
         self.map_no = 3
@@ -612,6 +628,32 @@ class AutoE3(dfa.HelperMapDFA):
 
     def should_retreat(self):
         return self.spot_no in (6,)
+
+
+class HelperE4(dfa.HelperMapDFA):
+    def init_data(self):
+        self.map_area = 34
+        self.map_no = 4
+        self.auto_advance = False
+        # 7 - 9 - 10 - 18
+        # 7 - 16 - 17 - 10 - 18
+        self.spot_list = {
+            7: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_combined_battle),
+            9: Spot(self.spot_battle, compass=True,
+                    formation=game.combat_formation_combined_battle),
+            16: Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_combined_antisub),
+            17: Spot(self.spot_battle, compass=False,
+                     formation=game.combat_formation_combined_battle),
+            10: Spot(self.spot_battle, compass=False,
+                     formation=game.combat_formation_combined_battle),
+            18: Spot(self.spot_battle, compass=True,
+                     formation=game.combat_formation_combined_battle),
+            }
+
+    def should_night_battle(self):
+        return self.spot_no in (18, )
 
 
 ################################################################
@@ -636,7 +678,9 @@ ACTIONS = {
     "33":   Auto33,
     "43":   Auto43,
     "51":   Auto51,
-    "e3":   AutoE3,
+    "53":   Auto53,
+    "e3":   HelperE3,
+    "e4":   HelperE4,
 }
 
 
