@@ -613,6 +613,7 @@ class Auto53(dfa.AutoOnceMapDFA):
 
 class HelperE3(dfa.HelperMapDFA):
     def init_data(self):
+        self.fleet_combined = 3
         self.map_area = 34
         self.map_no = 3
         self.spot_list = {
