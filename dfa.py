@@ -47,7 +47,8 @@ class UnknownDFAStatusException(Exception):
 
 class Spot:
     def __init__(self, spot_type, wrong_path=False, compass=False, final=False,
-                 enemy_animation=False, formation=None, click_next=None):
+                 enemy_animation=False, scout_plane=False, boss_dialog=False,
+                 formation=None, click_next=None):
         # General
         self.spot_type = spot_type
         self.wrong_path = wrong_path
@@ -55,6 +56,8 @@ class Spot:
         self.final = final
         # Battle
         self.enemy_animation = enemy_animation
+        self.scout_plane = scout_plane
+        self.boss_dialog = boss_dialog
         self.formation = formation
         # Select
         self.click_next = click_next
@@ -110,15 +113,19 @@ class BaseMapDFA(BaseDFA):
             return None
         if spot.compass:
             game.combat_compass()
+        if spot.scout_plane:
+            game.combat_map_scout_plane()
+        if spot.enemy_animation:
+            game.combat_map_enemy_animation()
         game.combat_map_moving()
         return spot.spot_type
 
     def spot_battle(self):
         spot = self.spot_list[self.spot_no]
-        if spot.enemy_animation:
-            game.combat_map_enemy_animation()
         if self.auto_formation and spot.formation is not None:
             spot.formation()
+        if spot.boss_dialog:
+            game.combat_boss_dialog()
 
         if self.auto_night:
             battle_request = game.combat_battle(self.should_night_battle())
