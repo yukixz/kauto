@@ -47,18 +47,19 @@ class UnknownDFAStatusException(Exception):
 
 class Spot:
     def __init__(self, spot_type, wrong_path=False, compass=False, final=False,
-                 enemy_animation=False, scout_plane=False, boss_dialog=False,
-                 formation=None, click_next=None):
+                 formation=None, enemy_animation=False, enemy_detection=False,
+                 scout_plane=False, boss_dialog=False, click_next=None):
         # General
         self.spot_type = spot_type
         self.wrong_path = wrong_path
         self.compass = compass
         self.final = final
         # Battle
+        self.formation = formation
         self.enemy_animation = enemy_animation
+        self.enemy_detection = enemy_detection
         self.scout_plane = scout_plane
         self.boss_dialog = boss_dialog
-        self.formation = formation
         # Select
         self.click_next = click_next
 
@@ -111,17 +112,17 @@ class BaseMapDFA(BaseDFA):
             self.spot_no = 0
             game.poi_refresh_page()
             return None
-        if spot.compass:
-            game.combat_compass()
-        if spot.scout_plane:
-            game.combat_map_scout_plane()
-        if spot.enemy_animation:
-            game.combat_map_enemy_animation()
-        game.combat_map_moving()
         return spot.spot_type
 
     def spot_battle(self):
         spot = self.spot_list[self.spot_no]
+        if spot.compass:
+            game.combat_compass()
+        game.combat_map_moving()
+        if spot.enemy_detection:
+            game.combat_map_enemy_animation()
+        if spot.enemy_animation:
+            game.combat_map_enemy_animation()
         if self.auto_formation and spot.formation is not None:
             spot.formation()
         if spot.boss_dialog:
@@ -141,17 +142,17 @@ class BaseMapDFA(BaseDFA):
             return self.end
 
         elif self.auto_advance:
-            if self.should_retreat():
-                game.combat_retreat()
-                self.spot_no = 0
-                return self.end
-
             if self.fleet_status == battle.BattleResult.Flagship_Damaged:
                 game.combat_retreat_flagship_damaged()
                 self.spot_no = 0
                 return self.end
 
             if self.fleet_status == battle.BattleResult.Ship_Damaged:
+                game.combat_retreat()
+                self.spot_no = 0
+                return self.end
+
+            if self.should_retreat():
                 game.combat_retreat()
                 self.spot_no = 0
                 return self.end
@@ -167,8 +168,18 @@ class BaseMapDFA(BaseDFA):
                     self.spot_no = req_next.body["api_no"]
                     return self.spot_dispatcher
 
+        else:
+            req_next = game.combat_map_next()
+            self.spot_no = req_next.body["api_no"]
+            return self.spot_dispatcher
+
     def spot_battle_with_challenge(self):
         spot = self.spot_list[self.spot_no]
+        if spot.compass:
+            game.combat_compass()
+        game.combat_map_moving()
+        if spot.enemy_detection:
+            game.combat_map_enemy_animation()
         if spot.enemy_animation:
             game.combat_map_enemy_animation()
         if self.auto_formation and spot.formation is not None:
@@ -221,6 +232,8 @@ class BaseMapDFA(BaseDFA):
 
     def spot_avoid(self):
         spot = self.spot_list[self.spot_no]
+        if spot.compass:
+            game.combat_compass()
         if spot.final:
             game.combat_summary()
             self.spot_no = 0

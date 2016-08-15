@@ -382,36 +382,6 @@ def combat_night():
     random_sleep(2)     # 动画时间
 
 
-# 進撃
-def combat_advance():
-    print("combat_advance")
-    combat_button_left()
-    req_ship_deck = wait("/kcsapi/api_get_member/ship_deck")
-    req_next = wait("/kcsapi/api_req_map/next")
-    random_sleep(1)     # 动画时间
-    return req_ship_deck, req_next
-
-
-# 撤退
-def combat_retreat():
-    print("combat_retreat")
-    combat_button_right()
-    request = wait("/kcsapi/api_port/port")
-    wait("/kcsapi/api_get_member/useitem")
-    random_sleep(1.2)   # 动画时间
-    return request
-
-
-# 撤退，旗艦大破
-def combat_retreat_flagship_damaged():
-    print("combat_retreat_flagship_damaged")
-    combat_button_retreat_flagship_damaged()
-    request = wait("/kcsapi/api_port/port")
-    wait("/kcsapi/api_get_member/useitem")
-    random_sleep(1.2)   # 动画时间
-    return request
-
-
 def combat_result():
     print("combat_result")
     request = wait(['/kcsapi/api_req_sortie/battleresult',
@@ -450,7 +420,7 @@ def combat_battle(night=False):
         '/kcsapi/api_req_combined_battle/sp_midnight',
         '/kcsapi/api_req_practice/battle',
         ])
-    if day_battle.body['api_midnight_flag'] == 0:
+    if day_battle.body.get('api_midnight_flag', 0) == 0:
         wait([
             '/kcsapi/api_req_sortie/battleresult',
             '/kcsapi/api_req_combined_battle/battleresult',
@@ -523,6 +493,37 @@ def combat_map_next():
 def combat_map_scout_plane():
     print("combat_map_scout_plane")
     random_sleep(6)
+
+
+# 進撃
+def combat_advance():
+    print("combat_advance")
+    combat_button_left()
+    req_ship_deck = wait("/kcsapi/api_get_member/ship_deck")
+    req_next = wait("/kcsapi/api_req_map/next")
+    random_sleep(1)     # 动画时间
+    return req_ship_deck, req_next
+
+
+# 撤退
+def combat_retreat():
+    print("combat_retreat")
+    combat_button_right()
+    request = wait("/kcsapi/api_port/port")
+    wait("/kcsapi/api_get_member/useitem")
+    random_sleep(1.2)   # 动画时间
+    return request
+
+
+# 撤退，旗艦大破
+def combat_retreat_flagship_damaged():
+    print("combat_retreat_flagship_damaged")
+    random_sleep(4)
+    combat_button_retreat_flagship_damaged()
+    request = wait("/kcsapi/api_port/port")
+    wait("/kcsapi/api_get_member/useitem")
+    random_sleep(1.2)   # 动画时间
+    return request
 
 
 def combat_map_enemy_animation():
