@@ -614,7 +614,6 @@ class Auto53(dfa.AutoOnceMapDFA):
 class HelperE1(dfa.HelperMapDFA):
     # Path: B(2)-E(5)-F(12)-G(7)-I(9)
     def init_data(self):
-        self.fleet_combined = 3
         self.map_area = 35
         self.map_no = 1
         self.spot_list = {
