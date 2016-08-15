@@ -486,6 +486,24 @@ def combat_battle(night=False):
                 random_sleep(8)
 
 
+def combat_boss_dialog():
+    print("combat_boss_dialog")
+    request = wait([
+        '/kcsapi/api_req_sortie/battle',
+        '/kcsapi/api_req_sortie/airbattle',
+        '/kcsapi/api_req_battle_midnight/sp_midnight',
+        '/kcsapi/api_req_combined_battle/battle',
+        '/kcsapi/api_req_combined_battle/battle_water',
+        '/kcsapi/api_req_combined_battle/airbattle',
+        '/kcsapi/api_req_combined_battle/sp_midnight',
+        '/kcsapi/api_req_practice/battle',
+        ], keep=True)
+    point = random_point(Point(500, 320), Point(750, 420))
+    random_sleep(4)
+    point.click()
+    return request
+
+
 def combat_map_loading():
     print("combat_map_loading")
     random_sleep(5)
@@ -500,6 +518,11 @@ def combat_map_next():
     print("combat_map_next")
     request = wait("/kcsapi/api_req_map/next")
     return request
+
+
+def combat_map_scout_plane():
+    print("combat_map_scout_plane")
+    random_sleep(6)
 
 
 def combat_map_enemy_animation():
