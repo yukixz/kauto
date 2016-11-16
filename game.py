@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+'''
+COPYRIGHT Dazzy Ding, Peter Zhang 2015-2016
+'''
+
 import math
 import platform
 import pyautogui
 
 import config
-import utils
 from api_server import api_server
 from utils import Point, random_sleep, random_point, random_click
 

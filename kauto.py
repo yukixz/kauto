@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+'''
+COPYRIGHT Dazzy Ding, Peter Zhang 2015-2016
+'''
+
 import sys
 import time
 import traceback
@@ -9,7 +13,7 @@ import game
 import utils
 import battle
 from api_server import api_server
-from dfa import Spot, BaseDFA, BaseDFAStatus
+from dfa import Spot, BaseDFA
 from utils import Point
 
 

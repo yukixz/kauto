@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+'''
+COPYRIGHT Dazzy Ding, Peter Zhang 2015-2016
+'''
+
 import math
 from enum import Enum
 

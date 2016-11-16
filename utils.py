@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+'''
+COPYRIGHT Dazzy Ding, Peter Zhang 2015-2016
+'''
+
 import os
 import platform
 import math
@@ -43,12 +47,12 @@ class Point():
 def random_point(a, b=None):
     if b is None:
         b = a
-    method = random.choice((random_point_1,
-                            random_point_2,))
+    method = random.choice((random_point_dd1,
+                            random_point_dd2,))
     return method(a, b)
 
 
-def random_point_1(a, b):
+def random_point_dd1(a, b):
     dx = b.x - a.x
     dy = b.y - a.y
     x = a.x + dx * random.random()
@@ -56,7 +60,7 @@ def random_point_1(a, b):
     return Point(x, y)
 
 
-def random_point_2(a, b, center=Point(400, 240)):
+def random_point_dd2(a, b, center=Point(400, 240)):
     # TODO: Point tend to center
     dx = b.x - a.x
     dy = b.y - a.y

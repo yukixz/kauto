@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+'''
+COPYRIGHT Dazzy Ding, Peter Zhang 2015-2016
+'''
+
 from abc import ABCMeta, abstractmethod
-from enum import Enum
 
 import battle
 import game
