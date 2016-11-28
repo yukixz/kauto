@@ -33,7 +33,7 @@ I can eat glass, it doesn't hurt me.
 * 11s: sortie 1-1 x 1
 * 15:
 * 23: 
-* 32: sortie 3-2-A, double line formation
+* 32: sortie 3-2-A, double line formation, end on heavy damaged.
 * 33:
 * 42:
 * 43:
