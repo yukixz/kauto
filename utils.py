@@ -14,6 +14,11 @@ from datetime import datetime
 import config
 import pyautogui
 
+LOGIC_WIDTH = 1920
+LOGIC_HEIGHT = 1080
+screenWidth, screenHeight = pyautogui.size()
+scaleFactor = int(screenWidth / LOGIC_WIDTH)
+print('scaling factor is ', scaleFactor)
 
 class Point():
     ''' Relative position point on game view.
@@ -28,11 +33,11 @@ class Point():
 
     @property
     def rx(self):
-        return config.base[0] + self.x
+        return (config.base[0] + self.x) * scaleFactor
 
     @property
     def ry(self):
-        return config.base[1] + self.y
+        return (config.base[1] + self.y) * scaleFactor
 
     def click(self):
         try:
@@ -92,9 +97,12 @@ def random_sleep_until(min, max=None, floor=0):
     end = random.uniform(min, max)
     seconds = end - now
 
-    end_dt = datetime.fromtimestamp(end)
-    print("sleep until:", end_dt.strftime("%I:%M:%S %p"))
-    time.sleep(seconds)
+    if (seconds < 0):
+        return
+    else:
+        end_dt = datetime.fromtimestamp(end)
+        print("sleep until:", end_dt.strftime("%I:%M:%S %p"))
+        time.sleep(seconds)
 
 
 def mouse_position():

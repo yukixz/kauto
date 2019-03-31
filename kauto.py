@@ -16,6 +16,16 @@ from api_server import api_server
 from dfa import Spot, BaseDFA
 from utils import Point
 
+import ctypes
+awareness = ctypes.c_int()
+errorCode = ctypes.windll.shcore.GetProcessDpiAwareness(0, ctypes.byref(awareness))
+print(awareness.value)
+
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
+ctypes.windll.user32.SetProcessDPIAware()
+
+import pyautogui
+print(pyautogui.size())
 
 ################################################################
 #
@@ -36,11 +46,13 @@ def auto_1_1_single():
     game.combat_map_moving()
     game.combat_battle(False)
     game.combat_result()
+    utils.random_sleep(1.6)
 
     game.combat_advance()
     game.combat_compass()
     game.combat_map_moving()
     game.combat_battle(False)
+    utils.random_sleep(1.6)
     game.combat_result()
 
     api_server.wait("/kcsapi/api_get_member/useitem")
@@ -377,7 +389,7 @@ def auto_destroy():
 
 
 class AutoExpedition(BaseDFA):
-    def __init__(self, run_hours=12):
+    def __init__(self, run_hours=2400):
         # Timestamp of stoping running.
         run_hours = int(run_hours)
         self.stop_time = time.time() + run_hours * 3600
@@ -398,6 +410,7 @@ class AutoExpedition(BaseDFA):
 
     def start(self):
         request = api_server.wait("/kcsapi/api_port/port")
+        utils.random_sleep(1)
         self.decks = request.body["api_deck_port"]
         for deck in self.decks:
             i = deck["api_id"] - 2
@@ -432,6 +445,7 @@ class AutoExpedition(BaseDFA):
                 if self.fleet_status[i] == 2:
                     hasSupply = True
 
+        utils.random_sleep(1)
         if hasBack:
             return self.back
         if hasSupply:
@@ -455,13 +469,16 @@ class AutoExpedition(BaseDFA):
         # Clear API server to avoid affect by player's action.
         api_server.empty()
         request = game.dock_back_to_port()
+        utils.random_sleep(1)
         self.decks = request.body["api_deck_port"]
+        utils.random_sleep(1)
         return self.port
 
     def back(self):
         ''' Take ONE fleet back.
         '''
         request = game.port_expedition_back()
+        utils.random_sleep(1)
         self.decks = request.body["api_deck_port"]
         return self.port
 
@@ -476,6 +493,7 @@ class AutoExpedition(BaseDFA):
                 self.fleet_status[i] = 0
 
         request = game.dock_back_to_port()
+        utils.random_sleep(1)
         self.decks = request.body["api_deck_port"]
         return self.port
 
@@ -487,6 +505,7 @@ class AutoExpedition(BaseDFA):
                 game.expedition_confirm_1()
                 game.expedition_select_fleet(i + 2)
                 request = game.expedition_confirm_2()
+                utils.random_sleep(1)
                 self.decks = request.body
         return self.port
 
@@ -615,6 +634,73 @@ class Auto53(dfa.AutoOnceMapDFA):
         return self.spot_no in (2, )
 
 
+def auto_52c():
+    game.set_foremost()
+
+    damaged = False
+    request = game.dock_back_to_port()
+
+    while True:
+        # for i in range(1, 18):
+        for i in range(1, 5):
+            if battle.port_has_damaged_ship(request):
+                damaged = True
+                break
+
+            game.port_open_panel_sortie()
+            game.sortie_select(5, 2)
+            game.sortie_confirm()
+
+            game.combat_map_loading()
+            game.combat_compass()
+            game.combat_map_moving()
+            game.combat_map_moving()
+            game.combat_formation_diamond()
+
+            game.combat_battle(False)
+            game.combat_result()
+            request = game.combat_retreat()
+
+        if (damaged or battle.port_has_damaged_ship(request)):
+            game.port_open_panel_organize()
+            break
+        else:
+            game.port_open_panel_supply()
+            time.sleep(1.3)
+            game.supply_current_fleet()
+            game.dock_back_to_port()
+
+
+def auto_15_single():
+    game.set_foremost()
+
+    while True:
+        request = game.dock_back_to_port()
+        if battle.port_has_damaged_ship(request):
+            break
+
+        game.port_open_panel_sortie()
+        game.sortie_select(1, 5)
+        game.sortie_confirm()
+
+        game.combat_map_loading()
+        game.combat_map_moving()
+        game.combat_formation_abreast()
+
+        game.combat_battle(False)
+        game.combat_result()
+        request = game.combat_retreat()
+
+        game.port_open_panel_supply()
+        time.sleep(7)
+        game.supply_current_fleet()
+
+        if battle.port_has_damaged_ship(request):
+            game.dock_open_panel_organize()
+            break
+
+
+
 class HelperE1(dfa.HelperMapDFA):
     # Path: B(2)-E(5)-F(12)-G(7)-I(9)
     def init_data(self):
@@ -650,20 +736,22 @@ class HelperE1(dfa.HelperMapDFA):
 ACTIONS = {
     "11":   auto_1_1,
     "11s":  auto_1_1_single,
+    "15":   Auto15,
+    "15s":  auto_15_single,
     "23":   Auto23,
     "32":   auto_3_2,
+    "33":   Auto33,
     "42":   Auto42,
+    "43":   Auto43,
+    "51":   Auto51,
+    "52c":  auto_52c,
+    "53":   Auto53,
     "54":   help_5_4,
     "d":    auto_destroy,
     "r":    help_battleresult,
     "e":    AutoExpedition,
     "mp":   current_mouse_position,
     "ba":   test_battle_analyze,
-    "15":   Auto15,
-    "33":   Auto33,
-    "43":   Auto43,
-    "51":   Auto51,
-    "53":   Auto53,
     "e1":   HelperE1,
 }
 
@@ -673,9 +761,12 @@ def run(action, args):
         func = ACTIONS.get(action)
         if callable(func):
             api_server.empty()
-            if issubclass(func, BaseDFA):
-                func(*args).run()
-            else:
+            try:
+                if issubclass(func, BaseDFA):
+                    func(*args).run()
+                else:
+                    func(*args)
+            except TypeError:
                 func(*args)
         else:
             print("Unknown command:", cmd)

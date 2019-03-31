@@ -90,18 +90,22 @@ def battle_analyze(battle_request, combined=0, verbose=False):
     else:
         battle_data = battle_request
 
+    if verbose:
+        print("battle\n", battle_data)
+
     # Initialize the fleet's hit points
     main_fleet = []
     escort_fleet = []
-    for i in range(1, 7):
-        if battle_data['api_maxhps'][i] < 0:
+    fleet_size = len(battle_data['api_f_maxhps'])
+    for i in range(0, fleet_size):
+        if battle_data['api_f_maxhps'][i] < 0:
             ship = Ship()
         else:
-            ship = Ship(now_hp=battle_data['api_nowhps'][i],
-                        max_hp=battle_data['api_maxhps'][i])
+            ship = Ship(now_hp=battle_data['api_f_nowhps'][i],
+                        max_hp=battle_data['api_f_maxhps'][i])
         main_fleet.append(ship)
     if combined > 0 and battle_data.get('api_nowhps_combined', None) is not None:
-        for i in range(1, 7):
+        for i in range(0, fleet_size):
             if battle_data['api_maxhps_combined'][i] < 0:
                 ship = Ship()
             else:
@@ -110,7 +114,7 @@ def battle_analyze(battle_request, combined=0, verbose=False):
             escort_fleet.append(ship)
     else:
         ship = Ship()
-        for i in range(1, 7):
+        for i in range(0, 6):
             escort_fleet.append(ship)
 
     # First kouku battle
@@ -172,11 +176,11 @@ def battle_analyze(battle_request, combined=0, verbose=False):
     if verbose:
         print("Last_battle:")
         print("\tmain_feet:")
-        for i in range(0,6):
+        for i in range(0,len(main_fleet)):
             print('\t', main_fleet[i].now_hp, " / ", main_fleet[i].max_hp)
         if combined > 0:
-            print("\tmain_feet:")
-            for i in range(0,6):
+            print("\tescort_fleet:")
+            for i in range(0,len(escort_fleet)):
                 print('\t', escort_fleet[i].now_hp, " / ", escort_fleet[i].max_hp)
 
     # Calculate the result of the battle
@@ -186,8 +190,13 @@ def battle_analyze(battle_request, combined=0, verbose=False):
     # if escort_fleet[0].now_hp < escort_fleet[0].max_hp * 0.2500001:
     #     return BattleResult.Flagship_Damaged
 
-    for i in range(1, 6):
-        if main_fleet[i].IsDamaged() or escort_fleet[i].IsDamaged():
+    for i in range(1, len(main_fleet)):
+        if main_fleet[i].IsDamaged():
+            print("battle_analyze: Ship_Damaged")
+            return BattleResult.Ship_Damaged
+
+    for i in range(1, len(escort_fleet)):
+        if escort_fleet[i].IsDamaged():
             print("battle_analyze: Ship_Damaged")
             return BattleResult.Ship_Damaged
 
