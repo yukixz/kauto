@@ -27,10 +27,14 @@ class BaseDFA(metaclass=ABCMeta):
             print("DFA", "=>", status.__name__)
             if callable(status):
                 # DFA Status
-                if issubclass(status, BaseDFAStatus):
-                    status = status().do()
-                # Raw function
-                else:
+                try:
+                    if issubclass(status, BaseDFAStatus):
+                        print('status doing')
+                        status = status().do()
+                    # Raw function
+                    else:
+                        status = status()
+                except TypeError:
                     status = status()
             # Unknown
             else:
