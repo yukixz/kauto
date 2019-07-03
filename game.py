@@ -28,28 +28,29 @@ def set_foremost():
 #   Port
 #
 ################################################################
-
+# 出击
+def port_open_main_sortie():
+    print("port_open_main_sortie")
+    point = random_point(Point(153, 250), Point(232, 335))
+    point.click()
+    random_sleep(1.3)
 
 # 母港：出撃
 def port_open_panel_sortie():
-    print("port_open_panel_sortie")
     random_sleep(2.1)
-    point = random_point(Point(166, 217), Point(238, 298))
-    point.click()
-    random_sleep(2.1)
-    point = random_point(Point(144, 125), Point(313, 324))
+    port_open_main_sortie()
+    point = random_point(Point(144, 175), Point(313, 335))
     point.click()
     wait("/kcsapi/api_get_member/mapinfo")
-    random_sleep(2.2)   # 动画时间
+    random_sleep(2.5)   # 动画时间
 
 
 # 母港：遠征
 def port_open_panel_expedition():
-    print("port_open_panel_expedition")
     random_sleep(1)
-    random_click(Point(161, 211), Point(238, 298))
-    random_sleep(2)
-    random_click(Point(594, 140), Point(765, 300))
+    port_open_main_sortie()
+    print("port_open_panel_expedition")
+    random_click(Point(594, 170), Point(750, 340))
     wait("/kcsapi/api_get_member/mission")
     random_sleep(2.2)   # 动画时间
 
@@ -58,7 +59,7 @@ def port_open_panel_expedition():
 def port_open_panel_supply():
     random_sleep(2.2)
     print("port_open_panel_supply")
-    point = random_point(Point(48, 211-22), Point(102, 274-22))
+    point = random_point(Point(50, 230), Point(100, 280))
     point.click()
     random_sleep(2.2)
 
@@ -66,7 +67,7 @@ def port_open_panel_supply():
 # 母港：编成
 def port_open_panel_organize():
     print("port_open_panel_organize")
-    point = random_point(Point(175, 115), Point(215, 155))
+    point = random_point(Point(175, 135), Point(215, 190))
     point.click()
     random_sleep(1.2)
 
@@ -121,15 +122,15 @@ def supply_select_fleet_1():
 
 
 def supply_select_fleet_2():
-    random_click(Point(174, 114), Point(180, 122))
+    random_click(Point(170, 145), Point(180, 160))
 
 
 def supply_select_fleet_3():
-    random_click(Point(204, 114), Point(212, 122))
+    random_click(Point(204, 145), Point(212, 160))
 
 
 def supply_select_fleet_4():
-    random_click(Point(234, 114), Point(242, 122))
+    random_click(Point(234, 145), Point(242, 160))
 
 
 def supply_select_fleet(i):
@@ -138,6 +139,7 @@ def supply_select_fleet(i):
         raise ValueError()
     select_fleet = globals()["supply_select_fleet_%d" % i]
     if callable(select_fleet):
+        random_sleep(1)
         select_fleet()
         random_sleep(1)
     else:
@@ -146,7 +148,7 @@ def supply_select_fleet(i):
 
 def supply_current_fleet():
     print("supply_current_fleet")
-    point = random_point(Point(118, 140-22), Point(124, 146-22))
+    point = random_point(Point(110, 145), Point(125, 160))
     point.click()
     wait("/kcsapi/api_req_hokyu/charge")
     random_sleep(1)   # 动画时间
@@ -154,10 +156,10 @@ def supply_current_fleet():
 
 def supply_first_ship():
     print("supply_first_ship")
-    point = random_point(Point(175, 150), Point(300, 180))
+    point = random_point(Point(175, 180), Point(300, 220))
     point.click()
     random_sleep(0.8)
-    point = random_point(Point(660, 430), Point(748, 455))
+    point = random_point(Point(660, 470), Point(748, 495))
     point.click()
     wait("/kcsapi/api_req_hokyu/charge")
     random_sleep(1)   # 动画时间
@@ -195,33 +197,34 @@ def factory_destroy_do_destory():
 
 # 出击：*-1
 def sortie_select_map_1():
-    point = random_point(Point(139, 171-22), Point(421, 277-22))
+    point = random_point(Point(139, 178), Point(421, 277))
     point.click()
 
 
 # 出击：*-2
 def sortie_select_map_2():
-    point = random_point(Point(464, 163-22), Point(659, 282-22))
+    point = random_point(Point(464, 178), Point(659, 282))
     point.click()
 
 
 # 出击：*-3
 def sortie_select_map_3():
-    point = random_point(Point(138, 311-22), Point(425, 423-22))
+    point = random_point(Point(138, 321), Point(425, 423))
     point.click()
 
 
 # 出击：*-4
 def sortie_select_map_4():
-    point = random_point(Point(463, 291-22), Point(682, 409-22))
+    point = random_point(Point(463, 321), Point(682, 409))
     point.click()
 
 
 # 出击：*-5
 def sortie_select_map_5():
-    point = random_point(Point(682, 236-22), Point(777, 290-22))
+    point = random_point(Point(682, 286), Point(747, 330))
     point.click()
     random_sleep(1)
+    point = random_point(Point(170, 180), Point(520, 260))
     point.click()
 
 
@@ -232,25 +235,31 @@ def sortie_select_area_1():
 
 # 出击：2-*
 def sortie_select_area_2():
-    point = random_point(Point(191, 439), Point(233, 458))
+    point = random_point(Point(191, 474), Point(233, 495))
     point.click()
 
 
 # 出击：3-*
 def sortie_select_area_3():
-    point = random_point(Point(256, 439), Point(296, 456))
+    point = random_point(Point(256, 474), Point(296, 495))
+    point.click()
+
+
+# 出击：7-*
+def sortie_select_area_7():
+    point = random_point(Point(322, 474), Point(359, 495))
     point.click()
 
 
 # 出击：4-*
 def sortie_select_area_4():
-    point = random_point(Point(383, 439), Point(425, 456))
+    point = random_point(Point(383, 474), Point(425, 495))
     point.click()
 
 
 # 出击：4-*
 def sortie_select_area_5():
-    point = random_point(Point(445, 435), Point(486, 458))
+    point = random_point(Point(445, 474), Point(486, 495))
     point.click()
 
 
@@ -569,65 +578,101 @@ def combat_summary():
 
 
 def expedition_select_map_1():
-    random_click(Point(119, 422), Point(145, 445))
+    pass
 
 
 def expedition_select_map_2():
-    random_click(Point(158, 422), Point(187, 445))
+    random_click(Point(158, 470), Point(187, 485))
 
 
 def expedition_select_map_3():
-    random_click(Point(197, 422), Point(228, 445))
+    random_click(Point(197, 470), Point(228, 485))
 
 
 def expedition_select_map_4():
-    random_click(Point(281, 432), Point(311, 445))
+    random_click(Point(281, 470), Point(311, 485))
 
 
 def expedition_select_map_5():
-    random_click(Point(322, 432), Point(353, 444))
+    random_click(Point(322, 470), Point(353, 485))
 
 
 def expedition_select_mission_1():
-    random_click(Point(265, 164), Point(410, 186))
+    random_click(Point(265, 195), Point(410, 220))
 
 
 def expedition_select_mission_2():
-    random_click(Point(265, 193), Point(410, 215))
+    random_click(Point(265, 225), Point(410, 250))
 
 
 def expedition_select_mission_3():
-    random_click(Point(265, 224), Point(410, 246))
+    random_click(Point(265, 255), Point(410, 280))
 
 
 def expedition_select_mission_4():
-    random_click(Point(265, 253), Point(410, 275))
+    random_click(Point(265, 285), Point(410, 310))
 
 
 def expedition_select_mission_5():
-    random_click(Point(265, 283), Point(410, 306))
+    random_click(Point(265, 315), Point(410, 340))
 
 
 def expedition_select_mission_6():
-    random_click(Point(265, 313), Point(410, 336))
+    random_click(Point(265, 345), Point(410, 370))
 
 
 def expedition_select_mission_7():
-    random_click(Point(265, 344), Point(410, 367))
+    random_click(Point(265, 375), Point(410, 400))
 
 
 def expedition_select_mission_8():
-    random_click(Point(265, 373), Point(410, 396))
+    random_click(Point(265, 405), Point(410, 430))
 
+
+def expedition_select_mission_scroll_up():
+    random_click(Point(314, 180), Point(314, 180))
+    random_sleep(0.5)
+
+
+def expedition_select_mission_scroll_down():
+    random_click(Point(314, 449), Point(314, 449))
+    random_sleep(0.5)
+
+def expedition_select_mission_X1():
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_8()
+
+def expedition_select_mission_X2():
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_8()
+
+def expedition_select_mission_X3():
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_8()
+
+def expedition_convert_id_to_display(i):
+    if (i >= 100):
+        no = i % 10 + 1
+        area = int(i / 10)
+        return "{area:x}{no}".format(area=area, no=no).upper()
 
 def expedition_select(i):
     print("expedition_select", i)
-    map = math.ceil(i / 8)
-    mission = i % 8
-    if mission == 0:
-        mission = 8
-    select_map = globals()["expedition_select_map_%d" % map]
-    select_mission = globals()["expedition_select_mission_%d" % mission]
+    if i >= 100:
+        map = int(i / 10) % 10 + 1 # 100 -> 1 | 110 -> 2
+        no = i % 10 + 1
+        mission = "X{no}".format(no=no).upper()
+    else:
+        map = math.ceil(i / 8)
+        mission = i % 8
+        if mission == 0:
+            mission = 8
+    print(map, mission)
+    select_map = globals()["expedition_select_map_{}".format(map)]
+    select_mission = globals()["expedition_select_mission_{}".format(mission)]
     if callable(select_map) and callable(select_mission):
         select_map()
         random_sleep(0.6)
@@ -642,11 +687,11 @@ def expedition_select_fleet_2():
 
 
 def expedition_select_fleet_3():
-    random_click(Point(418, 112), Point(428, 120))
+    random_click(Point(418, 140), Point(428, 150))
 
 
 def expedition_select_fleet_4():
-    random_click(Point(448, 112), Point(460, 120))
+    random_click(Point(448, 140), Point(460, 150))
 
 
 def expedition_select_fleet(i):
@@ -663,13 +708,13 @@ def expedition_select_fleet(i):
 
 def expedition_confirm_1():
     print("expedition_confirm_1")
-    random_click(Point(642, 432), Point(712, 456))
+    random_click(Point(642, 472), Point(685, 490))
     random_sleep(0.6)
 
 
 def expedition_confirm_2():
     print("expedition_confirm_2")
-    random_click(Point(579, 432), Point(694, 456))
+    random_click(Point(579, 472), Point(685, 486))
     request = wait("/kcsapi/api_get_member/deck")
     random_sleep(5)
     return request
