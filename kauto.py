@@ -489,10 +489,11 @@ class AutoExpedition(BaseDFA):
         return self.port
 
     def depart(self):
+        game.port_open_panel_sortie()
         for i in range(3):
-            game.dock_back_to_port()
-            game.port_open_panel_expedition()
             if self.exp_no[i] is not None and self.fleet_status[i] == 0:
+                game.dock_back_to_port()
+                game.port_open_panel_expedition()
                 game.expedition_select(self.exp_no[i])
                 game.expedition_confirm_1()
                 game.expedition_select_fleet(i + 2)
