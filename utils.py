@@ -14,11 +14,25 @@ from datetime import datetime
 import config
 import pyautogui
 
-LOGIC_WIDTH = 1920
-LOGIC_HEIGHT = 1080
 screenWidth, screenHeight = pyautogui.size()
-scaleFactor = int(screenWidth / LOGIC_WIDTH)
-print('scaling factor is ', scaleFactor)
+LOGIC_WIDTH, LOGIC_HEIGHT = config.screen_size
+print(screenWidth, screenHeight)
+
+import platform
+if platform.system() == 'Windows':
+    import ctypes
+    awareness = ctypes.c_int()
+    errorCode = ctypes.windll.shcore.GetProcessDpiAwareness(0, ctypes.byref(awareness))
+    print(awareness.value)
+
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    ctypes.windll.user32.SetProcessDPIAware()
+
+    scaleFactor = (screenWidth / LOGIC_WIDTH)
+    print('scaling factor is ', scaleFactor)
+else:
+    scaleFactor = 1
+
 
 class Point():
     ''' Relative position point on game view.
@@ -109,5 +123,7 @@ def mouse_position():
     pos = pyautogui.position()
     point = Point(pos[0] - config.base[0],
                   pos[1] - config.base[1])
+    print("zero point", config.base)
+    print("actual point", pos)
     print("mouse at", point)
     return point

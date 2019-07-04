@@ -67,5 +67,8 @@ target/
 # OX S Folder Attribute
 .DS-Store
 
+# vscode
+.vscode/
+
 # Configuration file
 config.py

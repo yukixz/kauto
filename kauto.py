@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+ # -*- coding: utf-8 -*
+ # #!/usr/bin/env python3
 
 '''
 COPYRIGHT Dazzy Ding, Peter Zhang 2015-2016
@@ -16,16 +17,6 @@ from api_server import api_server
 from dfa import Spot, BaseDFA
 from utils import Point
 
-import ctypes
-awareness = ctypes.c_int()
-errorCode = ctypes.windll.shcore.GetProcessDpiAwareness(0, ctypes.byref(awareness))
-print(awareness.value)
-
-ctypes.windll.shcore.SetProcessDpiAwareness(2)
-ctypes.windll.user32.SetProcessDPIAware()
-
-import pyautogui
-print(pyautogui.size())
 
 ################################################################
 #
@@ -498,8 +489,9 @@ class AutoExpedition(BaseDFA):
         return self.port
 
     def depart(self):
-        game.port_open_panel_expedition()
         for i in range(3):
+            game.dock_back_to_port()
+            game.port_open_panel_expedition()
             if self.exp_no[i] is not None and self.fleet_status[i] == 0:
                 game.expedition_select(self.exp_no[i])
                 game.expedition_confirm_1()
