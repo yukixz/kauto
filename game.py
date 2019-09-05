@@ -195,6 +195,17 @@ def factory_destroy_do_destory():
 ################################################################
 
 
+# 出击：出击 Tab 演习 button
+def sortie_select_exercise_tab():
+    random_sleep(1)
+
+# 出击：出击 Tab 远征 button
+def sortie_select_expedition_tab():
+    point = random_point(Point(714, 150), Point(774, 160))
+    point.click()
+    random_sleep(1)
+
+
 # 出击：*-1
 def sortie_select_map_1():
     point = random_point(Point(139, 178), Point(421, 277))
@@ -287,10 +298,10 @@ def sortie_select(area, map):
 # 出击：决定
 def sortie_confirm():
     print("sortie_confirm")
-    point = random_point(Point(593, 427), Point(768, 451))
+    point = random_point(Point(593, 466), Point(768, 490))
     point.click()
     random_sleep(1.6)
-    point = random_point(Point(534, 427), Point(694, 451))
+    point = random_point(Point(534, 466), Point(694, 490))
     point.click()
     request = wait("/kcsapi/api_req_map/start")
     random_sleep(1)     # 动画时间
@@ -316,35 +327,56 @@ def combat_compass():
 # 陣形：単縦陣
 def combat_formation_line():
     print("combat_formation_line")
-    point = random_point(Point(403, 200-22), Point(492, 216-22))
+    point = random_point(Point(403, 214), Point(488, 228))
     point.click()
 
 
 # 陣形：複縦陣
 def combat_formation_double():
     print("combat_formation_double")
-    point = random_point(Point(538, 200-22), Point(616, 216-22))
+    point = random_point(Point(538, 214), Point(616, 228))
     point.click()
 
 
-# 陣形：
+# 陣形：轮型阵
 def combat_formation_diamond():
     print("combat_formation_diamond")
-    point = random_point(Point(667, 200-22), Point(755, 216-22))
+    point = random_point(Point(667, 214), Point(755, 228))
+    point.click()
+
+
+# 陣形：梯形阵
+def combat_formation_echelon_normal():
+    print("combat_formation_diamond")
+    point = random_point(Point(474, 372), Point(559, 385))
+    point.click()
+
+
+# 陣形：単横陣
+def combat_formation_abreast_normal():
+    print("combat_formation_abreast")
+    point = random_point(Point(607, 372), Point(690, 385))
+    point.click()
+    
+
+# 陣形：梯形阵
+def combat_formation_echelon():
+    print("combat_formation_diamond")
+    point = random_point(Point(403, 372), Point(488, 385))
     point.click()
 
 
 # 陣形：単横陣
 def combat_formation_abreast():
     print("combat_formation_abreast")
-    point = random_point(Point(532, 332), Point(626, 348))
+    point = random_point(Point(538, 372), Point(616, 385))
     point.click()
 
 
 # 陣形：警戒陣
 def combat_formation_alert():
     print("combat_formation_alert")
-    point = random_point(Point(663, 332), Point(755, 348))
+    point = random_point(Point(667, 372), Point(755, 385))
     point.click()
 
 
@@ -371,27 +403,27 @@ def combat_formation_combined_battle():
 
 
 def combat_button_retreat_flagship_damaged():
-    point = random_point(Point(535, 220), Point(605, 260))
+    point = random_point(Point(535, 260), Point(605, 290))
     point.click()
 
 
 def combat_button_left():
-    point = random_point(Point(257, 247-22), Point(327, 289-22))
+    point = random_point(Point(257, 260), Point(327, 289))
     point.click()
 
 
 def combat_button_right():
-    point = random_point(Point(473, 238-22), Point(551, 289-22))
+    point = random_point(Point(473, 260), Point(551, 289))
     point.click()
 
 
 def combat_move_to_button_left():
-    point = random_point(Point(257, 247-22), Point(327, 289-22))
+    point = random_point(Point(257, 260), Point(327, 289))
     point.moveTo()
 
 
 def combat_move_to_button_right():
-    point = random_point(Point(473, 238-22), Point(551, 289-22))
+    point = random_point(Point(473, 260), Point(551, 289))
     point.moveTo()
 
 
@@ -577,53 +609,55 @@ def combat_summary():
 ################################################################
 
 
-def expedition_select_map_1():
+# 出击：远征 Tab 出击 button
+def expedition_select_sortie_tab():
+    point = random_point(Point(312, 140), Point(373, 150))
+    point.click()
+    random_sleep(1)
+
+
+def expedition_select_map_1(): # 镇守府海域
     pass
 
-
-def expedition_select_map_2():
+def expedition_select_map_2(): # 南西诸岛海域
     random_click(Point(158, 470), Point(187, 485))
 
-
-def expedition_select_map_3():
+def expedition_select_map_3(): # 北方海域
     random_click(Point(197, 470), Point(228, 485))
 
+def expedition_select_map_6():  # 南西海域
+    random_click(Point(244, 470), Point(268, 485))
 
-def expedition_select_map_4():
+def expedition_select_map_4(): # 西方海域
     random_click(Point(281, 470), Point(311, 485))
 
-
-def expedition_select_map_5():
+def expedition_select_map_5(): # 南方海域
     random_click(Point(322, 470), Point(353, 485))
+
+def expedition_select_map_7(): # 中部海域
+    random_click(Point(365, 470), Point(390, 485))
 
 
 def expedition_select_mission_1():
     random_click(Point(265, 195), Point(410, 220))
 
-
 def expedition_select_mission_2():
     random_click(Point(265, 225), Point(410, 250))
-
 
 def expedition_select_mission_3():
     random_click(Point(265, 255), Point(410, 280))
 
-
 def expedition_select_mission_4():
     random_click(Point(265, 285), Point(410, 310))
-
 
 def expedition_select_mission_5():
     random_click(Point(265, 315), Point(410, 340))
 
-
 def expedition_select_mission_6():
     random_click(Point(265, 345), Point(410, 370))
 
-
 def expedition_select_mission_7():
     random_click(Point(265, 375), Point(410, 400))
-
 
 def expedition_select_mission_8():
     random_click(Point(265, 405), Point(410, 430))
@@ -633,10 +667,10 @@ def expedition_select_mission_scroll_up():
     random_click(Point(314, 180), Point(314, 180))
     random_sleep(0.5)
 
-
 def expedition_select_mission_scroll_down():
     random_click(Point(314, 449), Point(314, 449))
     random_sleep(0.5)
+
 
 def expedition_select_mission_X1():
     expedition_select_mission_scroll_down()
@@ -648,6 +682,13 @@ def expedition_select_mission_X2():
     expedition_select_mission_8()
 
 def expedition_select_mission_X3():
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_scroll_down()
+    expedition_select_mission_8()
+
+def expedition_select_mission_X4():
+    expedition_select_mission_scroll_down()
     expedition_select_mission_scroll_down()
     expedition_select_mission_scroll_down()
     expedition_select_mission_scroll_down()
